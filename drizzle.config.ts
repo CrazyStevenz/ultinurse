@@ -7,5 +7,7 @@ export default {
   dialect: "postgresql",
   dbCredentials: {
     url: env.DATABASE_URL,
+    user: env.DATABASE_USER,
+    password: env.DATABASE_PASSWORD,
   },
 } satisfies Config;
