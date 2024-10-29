@@ -1,15 +1,15 @@
 import Link from "next/link";
 
-import { LatestPost } from "@/app/_components/post";
+import { LatestCaregiver } from "@/app/_components/caregiver";
 import { auth } from "@/server/auth";
 import { api, HydrateClient } from "@/trpc/server";
 
 export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
+  const hello = await api.caregiver.hello({ text: "from tRPC" });
   const session = await auth();
 
   if (session?.user) {
-    void api.post.getLatest.prefetch();
+    void api.caregiver.getLatest.prefetch();
   }
 
   return (
@@ -37,7 +37,7 @@ export default async function Home() {
             </div>
           </div>
 
-          {session?.user && <LatestPost />}
+          {session?.user && <LatestCaregiver />}
         </div>
       </main>
     </HydrateClient>

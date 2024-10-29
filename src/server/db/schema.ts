@@ -10,8 +10,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
-export const posts = pgTable(
-  "post",
+export const caregiver = pgTable(
+  "caregiver",
   {
     id: integer().primaryKey().generatedByDefaultAsIdentity(),
     name: varchar({ length: 255 }),

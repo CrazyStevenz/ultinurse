@@ -4,29 +4,31 @@ import { useState } from "react";
 
 import { api } from "@/trpc/react";
 
-export function LatestPost() {
-  const [latestPost] = api.post.getLatest.useSuspenseQuery();
+export function LatestCaregiver() {
+  const [latestCaregiver] = api.caregiver.getLatest.useSuspenseQuery();
 
   const utils = api.useUtils();
   const [name, setName] = useState("");
-  const createPost = api.post.create.useMutation({
+  const createCaregiver = api.caregiver.create.useMutation({
     onSuccess: async () => {
-      await utils.post.invalidate();
+      await utils.caregiver.invalidate();
       setName("");
     },
   });
 
   return (
     <div className="w-full max-w-xs">
-      {latestPost ? (
-        <p className="truncate">Your most recent post: {latestPost.name}</p>
+      {latestCaregiver ? (
+        <p className="truncate">
+          Your most recent caregiver: {latestCaregiver.name}
+        </p>
       ) : (
-        <p>You have no posts yet.</p>
+        <p>You have no caregivers yet.</p>
       )}
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          createPost.mutate({ name });
+          createCaregiver.mutate({ name });
         }}
         className="flex flex-col gap-2"
       >
@@ -40,9 +42,9 @@ export function LatestPost() {
         <button
           type="submit"
           className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
-          disabled={createPost.isPending}
+          disabled={createCaregiver.isPending}
         >
-          {createPost.isPending ? "Submitting..." : "Submit"}
+          {createCaregiver.isPending ? "Submitting..." : "Submit"}
         </button>
       </form>
     </div>

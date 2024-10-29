@@ -5,9 +5,9 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
-import { posts } from "@/server/db/schema";
+import { caregiver } from "@/server/db/schema";
 
-export const postRouter = createTRPCRouter({
+export const caregiverRouter = createTRPCRouter({
   hello: publicProcedure
     .input(z.object({ text: z.string() }))
     .query(({ input }) => {
@@ -19,21 +19,18 @@ export const postRouter = createTRPCRouter({
   create: protectedProcedure
     .input(z.object({ name: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.insert(posts).values({
+      await ctx.db.insert(caregiver).values({
         name: input.name,
         userId: ctx.session.user.id,
       });
     }),
 
+  // TODO: Keeping this for documentation, remove eventually
   getLatest: protectedProcedure.query(async ({ ctx }) => {
-    const post = await ctx.db.query.posts.findFirst({
-      orderBy: (posts, { desc }) => [desc(posts.createdAt)],
+    const caregiver = await ctx.db.query.caregiver.findFirst({
+      orderBy: (caregivers, { desc }) => [desc(caregivers.createdAt)],
     });
 
-    return post ?? null;
-  }),
-
-  getSecretMessage: protectedProcedure.query(() => {
-    return "you can now see this secret message!";
+    return caregiver ?? null;
   }),
 });
