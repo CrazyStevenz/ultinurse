@@ -9,15 +9,19 @@ import * as schema from "./schema";
  * update.
  */
 const globalForDb = globalThis as unknown as {
-  conn: postgres.Sql | undefined;
+  client: postgres.Sql | undefined;
 };
 
-const conn =
-  globalForDb.conn ??
+const client =
+  globalForDb.client ??
   postgres(env.DATABASE_URL, {
     user: env.DATABASE_USER,
     password: env.DATABASE_PASSWORD,
   });
-if (env.NODE_ENV !== "production") globalForDb.conn = conn;
+if (env.NODE_ENV !== "production") globalForDb.client = client;
 
-export const db = drizzle(conn, { schema });
+export const db = drizzle({
+  client,
+  schema,
+  casing: "snake_case", // https://orm.drizzle.team/docs/sql-schema-declaration#camel-and-snake-casing
+});

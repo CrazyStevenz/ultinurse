@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import {
   index,
   integer,
@@ -13,36 +13,32 @@ import { type AdapterAccount } from "next-auth/adapters";
 export const posts = pgTable(
   "post",
   {
-    id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-    name: varchar("name", { length: 256 }),
-    createdById: varchar("created_by", { length: 255 })
+    id: integer().primaryKey().generatedByDefaultAsIdentity(),
+    name: varchar({ length: 255 }),
+    userId: varchar({ length: 255 })
       .notNull()
       .references(() => users.id),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(
-      () => new Date(),
-    ),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
   },
   (example) => ({
-    createdByIdIdx: index("created_by_idx").on(example.createdById),
+    userIdIdx: index("user_id_idx").on(example.userId),
     nameIndex: index("name_idx").on(example.name),
   }),
 );
 
 export const users = pgTable("user", {
-  id: varchar("id", { length: 255 })
+  id: varchar({ length: 255 })
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  name: varchar("name", { length: 255 }),
-  email: varchar("email", { length: 255 }).notNull(),
-  emailVerified: timestamp("email_verified", {
+  name: varchar({ length: 255 }),
+  email: varchar({ length: 255 }).notNull(),
+  emailVerified: timestamp({
     mode: "date",
     withTimezone: true,
-  }).default(sql`CURRENT_TIMESTAMP`),
-  image: varchar("image", { length: 255 }),
+  }).defaultNow(),
+  image: varchar({ length: 255 }),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -52,23 +48,21 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const accounts = pgTable(
   "account",
   {
-    userId: varchar("user_id", { length: 255 })
+    userId: varchar({ length: 255 })
       .notNull()
       .references(() => users.id),
-    type: varchar("type", { length: 255 })
-      .$type<AdapterAccount["type"]>()
-      .notNull(),
-    provider: varchar("provider", { length: 255 }).notNull(),
-    providerAccountId: varchar("provider_account_id", {
-      length: 255,
-    }).notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: varchar("token_type", { length: 255 }),
-    scope: varchar("scope", { length: 255 }),
-    id_token: text("id_token"),
-    session_state: varchar("session_state", { length: 255 }),
+    type: varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
+    provider: varchar({ length: 255 }).notNull(),
+    providerAccountId: varchar({ length: 255 }).notNull(),
+
+    // These need an underscore, due to the adapter property naming of auth.js
+    refresh_token: text(),
+    access_token: text(),
+    expires_at: integer(),
+    token_type: varchar({ length: 255 }),
+    scope: varchar({ length: 255 }),
+    id_token: text(),
+    session_state: varchar({ length: 255 }),
   },
   (account) => ({
     compoundKey: primaryKey({
@@ -85,13 +79,11 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
 export const sessions = pgTable(
   "session",
   {
-    sessionToken: varchar("session_token", { length: 255 })
-      .notNull()
-      .primaryKey(),
-    userId: varchar("user_id", { length: 255 })
+    sessionToken: varchar({ length: 255 }).notNull().primaryKey(),
+    userId: varchar({ length: 255 })
       .notNull()
       .references(() => users.id),
-    expires: timestamp("expires", {
+    expires: timestamp({
       mode: "date",
       withTimezone: true,
     }).notNull(),
@@ -108,9 +100,9 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 export const verificationTokens = pgTable(
   "verification_token",
   {
-    identifier: varchar("identifier", { length: 255 }).notNull(),
-    token: varchar("token", { length: 255 }).notNull(),
-    expires: timestamp("expires", {
+    identifier: varchar({ length: 255 }).notNull(),
+    token: varchar({ length: 255 }).notNull(),
+    expires: timestamp({
       mode: "date",
       withTimezone: true,
     }).notNull(),
