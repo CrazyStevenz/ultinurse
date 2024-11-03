@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Use this script to start a docker container for a local development database
+# Use this script to start a podman container for a local development database
 
 DB_CONTAINER_NAME="optinurse-postgres"
 
