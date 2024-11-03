@@ -36,10 +36,7 @@ export const users = pgTable("user", {
   id: uuid().primaryKey().defaultRandom(),
   name: varchar({ length: 255 }),
   email: varchar({ length: 255 }).notNull(),
-  emailVerified: timestamp({
-    mode: "date",
-    withTimezone: true,
-  }).defaultNow(),
+  emailVerified: timestamp({ withTimezone: true }).defaultNow(),
   image: varchar({ length: 255 }),
   ...timestamps,
 });
@@ -86,10 +83,7 @@ export const sessions = pgTable(
     userId: uuid()
       .notNull()
       .references(() => users.id),
-    expires: timestamp({
-      mode: "date",
-      withTimezone: true,
-    }).notNull(),
+    expires: timestamp({ withTimezone: true }).notNull(),
     ...timestamps,
   },
   (session) => [index("session_user_id_idx").on(session.userId)],
@@ -104,10 +98,7 @@ export const verificationTokens = pgTable(
   {
     identifier: varchar({ length: 255 }).notNull(),
     token: varchar({ length: 255 }).notNull(),
-    expires: timestamp({
-      mode: "date",
-      withTimezone: true,
-    }).notNull(),
+    expires: timestamp({ withTimezone: true }).notNull(),
     ...timestamps,
   },
   (verificationToken) => [
