@@ -6,32 +6,34 @@ import {
   primaryKey,
   text,
   timestamp,
+  uuid,
   varchar,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
+
+const timestamps = {
+  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+};
 
 export const caregiver = pgTable(
   "caregiver",
   {
     id: integer().primaryKey().generatedByDefaultAsIdentity(),
     name: varchar({ length: 255 }),
-    userId: varchar({ length: 255 })
+    userId: uuid()
       .notNull()
       .references(() => users.id),
-    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+    ...timestamps,
   },
-  (example) => ({
-    userIdIdx: index("user_id_idx").on(example.userId),
-    nameIndex: index("name_idx").on(example.name),
-  }),
+  (caregiver) => [
+    index("user_id_idx").on(caregiver.userId),
+    index("name_idx").on(caregiver.name),
+  ],
 );
 
 export const users = pgTable("user", {
-  id: varchar({ length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+  id: uuid().primaryKey().defaultRandom(),
   name: varchar({ length: 255 }),
   email: varchar({ length: 255 }).notNull(),
   emailVerified: timestamp({
@@ -39,6 +41,7 @@ export const users = pgTable("user", {
     withTimezone: true,
   }).defaultNow(),
   image: varchar({ length: 255 }),
+  ...timestamps,
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -48,7 +51,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const accounts = pgTable(
   "account",
   {
-    userId: varchar({ length: 255 })
+    userId: uuid()
       .notNull()
       .references(() => users.id),
     type: varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
@@ -63,13 +66,13 @@ export const accounts = pgTable(
     scope: varchar({ length: 255 }),
     id_token: text(),
     session_state: varchar({ length: 255 }),
+
+    ...timestamps,
   },
-  (account) => ({
-    compoundKey: primaryKey({
-      columns: [account.provider, account.providerAccountId],
-    }),
-    userIdIdx: index("account_user_id_idx").on(account.userId),
-  }),
+  (account) => [
+    primaryKey({ columns: [account.provider, account.providerAccountId] }),
+    index("account_user_id_idx").on(account.userId),
+  ],
 );
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -80,17 +83,16 @@ export const sessions = pgTable(
   "session",
   {
     sessionToken: varchar({ length: 255 }).notNull().primaryKey(),
-    userId: varchar({ length: 255 })
+    userId: uuid()
       .notNull()
       .references(() => users.id),
     expires: timestamp({
       mode: "date",
       withTimezone: true,
     }).notNull(),
+    ...timestamps,
   },
-  (session) => ({
-    userIdIdx: index("session_user_id_idx").on(session.userId),
-  }),
+  (session) => [index("session_user_id_idx").on(session.userId)],
 );
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -106,8 +108,11 @@ export const verificationTokens = pgTable(
       mode: "date",
       withTimezone: true,
     }).notNull(),
+    ...timestamps,
   },
-  (vt) => ({
-    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
-  }),
+  (verificationToken) => [
+    primaryKey({
+      columns: [verificationToken.identifier, verificationToken.token],
+    }),
+  ],
 );
