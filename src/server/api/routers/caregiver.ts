@@ -25,6 +25,10 @@ export const caregiverRouter = createTRPCRouter({
       });
     }),
 
+  read: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.db.select().from(caregiver);
+  }),
+
   // TODO: Keeping this for documentation, remove eventually
   getLatest: protectedProcedure.query(async ({ ctx }) => {
     const caregiver = await ctx.db.query.caregiver.findFirst({
