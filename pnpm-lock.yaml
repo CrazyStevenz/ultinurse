@@ -30,8 +30,8 @@ importers:
         specifier: ^11.0.0-rc.593
         version: 11.0.0-rc.593
       drizzle-orm:
-        specifier: 0.36.0
-        version: 0.36.0(@libsql/client-wasm@0.14.0)(@types/react@18.3.12)(postgres@3.4.5)(react@18.3.1)
+        specifier: 0.36.1
+        version: 0.36.1(@libsql/client-wasm@0.14.0)(@types/react@18.3.12)(postgres@3.4.5)(react@18.3.1)
       geist:
         specifier: ^1.3.0
         version: 1.3.1(next@15.0.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
@@ -79,8 +79,8 @@ importers:
         specifier: ^8.1.0
         version: 8.11.0(eslint@8.57.1)(typescript@5.6.3)
       drizzle-kit:
-        specifier: 0.27.1
-        version: 0.27.1
+        specifier: 0.28.0
+        version: 0.28.0
       eslint:
         specifier: ^8.57.0
         version: 8.57.1
@@ -1115,12 +1115,12 @@ packages:
     resolution: {integrity: sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==}
     engines: {node: '>=6.0.0'}
 
-  drizzle-kit@0.27.1:
-    resolution: {integrity: sha512-4BNA0T2blN+jW5wSwhtc+FIlCMuxYSMWCnYYdOBi5rttwq8aVXRUid0d0NCzcBKtZQSPZGAUxy+TXr7Q1OgEug==}
+  drizzle-kit@0.28.0:
+    resolution: {integrity: sha512-KqI+CS2Ga9GYIrXpxpCDUJJrH/AT/k4UY0Pb4oRgQEGkgN1EdCnqp664cXgwPWjDr5RBtTsjZipw8+8C//K63A==}
     hasBin: true
 
-  drizzle-orm@0.36.0:
-    resolution: {integrity: sha512-6BETYPdKSR7cDHC0ZfqZk2VrKJ8n/Rfd3ajFPsAbc69gi87nwZ6oBA2wUGMELHA0tQE4kUKN0Ds00LUZQ6Z69A==}
+  drizzle-orm@0.36.1:
+    resolution: {integrity: sha512-F4hbimnMEhyWzDowQB4xEuVJJWXLHZYD7FYwvo8RImY+N7pStGqsbfmT95jDbec1s4qKmQbiuxEDZY90LRrfIw==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=3'
@@ -3263,7 +3263,7 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
-  drizzle-kit@0.27.1:
+  drizzle-kit@0.28.0:
     dependencies:
       '@drizzle-team/brocli': 0.10.2
       '@esbuild-kit/esm-loader': 2.6.5
@@ -3272,7 +3272,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.36.0(@libsql/client-wasm@0.14.0)(@types/react@18.3.12)(postgres@3.4.5)(react@18.3.1):
+  drizzle-orm@0.36.1(@libsql/client-wasm@0.14.0)(@types/react@18.3.12)(postgres@3.4.5)(react@18.3.1):
     optionalDependencies:
       '@libsql/client-wasm': 0.14.0
       '@types/react': 18.3.12
