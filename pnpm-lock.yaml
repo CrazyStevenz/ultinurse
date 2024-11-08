@@ -97,10 +97,10 @@ importers:
         specifier: ^3.3.2
         version: 3.3.3
       prettier-plugin-tailwindcss:
-        specifier: ^0.6.5
+        specifier: 0.6.8
         version: 0.6.8(prettier@3.3.3)
       tailwindcss:
-        specifier: ^3.4.3
+        specifier: 3.4.14
         version: 3.4.14
       typescript:
         specifier: ^5.5.3
