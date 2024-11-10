@@ -16,6 +16,8 @@ purposes.
 3. [fnm (Fast Node Manager)](https://github.com/Schniz/fnm?tab=readme-ov-file#installation) / [nvm (Node Version Manager)](https://github.com/nvm-sh/nvm#installing-and-updating) /
    A manual installation of Node 20.x
 
+4. [podman](https://podman.io/docs/installation)
+
 ### Downloading
 
 Navigate to the folder where you want the project to be saved and run the following command:
