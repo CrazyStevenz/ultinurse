@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { LatestCaregiver } from "@/app/_components/caregiver";
 import { auth } from "@/server/auth";
 import { api, HydrateClient } from "@/trpc/server";
