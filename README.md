@@ -51,7 +51,7 @@ Follow the instructions in the .env to generate a NextAuth secret, and check the
 Then, you need to setup your local database. To do that (and to start it every time after that) run:
 
 ```sh
-npm run db:start
+pnpm run db:start
 ```
 
 ### Running
@@ -61,7 +61,7 @@ npm run db:start
 To start the dev server, run:
 
 ```sh
-npm run dev
+pnpm run dev
 ```
 
 Wait for it to compile and click the `http://localhost:3000` link when it appears.
