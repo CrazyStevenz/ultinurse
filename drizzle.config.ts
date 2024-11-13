@@ -11,4 +11,5 @@ export default {
     password: env.DATABASE_PASSWORD,
   },
   casing: "snake_case", // https://orm.drizzle.team/docs/sql-schema-declaration#camel-and-snake-casing
+  out: "./src/server/db/migrations",
 } satisfies Config;
