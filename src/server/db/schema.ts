@@ -43,7 +43,10 @@ export const accounts = pgTable(
   ],
 );
 export const accountsRelations = relations(accounts, ({ one }) => ({
-  user: one(users, { fields: [accounts.userId], references: [users.id] }),
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
+  }),
 }));
 
 export const caregivers = pgTable(
@@ -57,9 +60,19 @@ export const caregivers = pgTable(
     ...timestamps,
   },
   (caregiver) => [
-    index("user_id_idx").on(caregiver.userId),
-    index("name_idx").on(caregiver.name),
+    index("caregiver_user_id_idx").on(caregiver.userId),
+    index("caregiver_name_idx").on(caregiver.name),
   ],
+);
+
+export const patients = pgTable(
+  "patient",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity(),
+    name: varchar({ length: 255 }),
+    ...timestamps,
+  },
+  (patient) => [index("patient_name_idx").on(patient.name)],
 );
 
 export const sessions = pgTable(
@@ -76,6 +89,26 @@ export const sessions = pgTable(
 );
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
+
+export const shifts = pgTable(
+  "shift",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity(),
+    patientId: integer()
+      .notNull()
+      .references(() => patients.id),
+    startsAt: timestamp({ withTimezone: true }).notNull(),
+    endsAt: timestamp({ withTimezone: true }).notNull(),
+    ...timestamps,
+  },
+  (shift) => [index("shift_patient_id_idx").on(shift.patientId)],
+);
+export const shiftRelations = relations(shifts, ({ one }) => ({
+  patient: one(patients, {
+    fields: [shifts.patientId],
+    references: [patients.id],
+  }),
 }));
 
 export const users = pgTable("user", {
