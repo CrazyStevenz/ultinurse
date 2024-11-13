@@ -46,7 +46,7 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
 
-export const caregiver = pgTable(
+export const caregivers = pgTable(
   "caregiver",
   {
     id: integer().primaryKey().generatedByDefaultAsIdentity(),
@@ -87,7 +87,7 @@ export const users = pgTable("user", {
   ...timestamps,
 });
 export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts,
+  accounts: many(accounts),
 }));
 
 export const verificationTokens = pgTable(
