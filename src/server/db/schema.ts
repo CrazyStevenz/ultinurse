@@ -16,35 +16,6 @@ const timestamps = {
   updatedAt: timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 };
 
-export const caregiver = pgTable(
-  "caregiver",
-  {
-    id: integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: varchar({ length: 255 }),
-    userId: uuid()
-      .notNull()
-      .references(() => users.id),
-    ...timestamps,
-  },
-  (caregiver) => [
-    index("user_id_idx").on(caregiver.userId),
-    index("name_idx").on(caregiver.name),
-  ],
-);
-
-export const users = pgTable("user", {
-  id: uuid().primaryKey().defaultRandom(),
-  name: varchar({ length: 255 }),
-  email: varchar({ length: 255 }).notNull(),
-  emailVerified: timestamp({ withTimezone: true }).defaultNow(),
-  image: varchar({ length: 255 }),
-  ...timestamps,
-});
-
-export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts),
-}));
-
 export const accounts = pgTable(
   "account",
   {
@@ -71,10 +42,25 @@ export const accounts = pgTable(
     index("account_user_id_idx").on(account.userId),
   ],
 );
-
 export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
+
+export const caregiver = pgTable(
+  "caregiver",
+  {
+    id: integer().primaryKey().generatedByDefaultAsIdentity(),
+    name: varchar({ length: 255 }),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id),
+    ...timestamps,
+  },
+  (caregiver) => [
+    index("user_id_idx").on(caregiver.userId),
+    index("name_idx").on(caregiver.name),
+  ],
+);
 
 export const sessions = pgTable(
   "session",
@@ -88,9 +74,20 @@ export const sessions = pgTable(
   },
   (session) => [index("session_user_id_idx").on(session.userId)],
 );
-
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
+
+export const users = pgTable("user", {
+  id: uuid().primaryKey().defaultRandom(),
+  name: varchar({ length: 255 }),
+  email: varchar({ length: 255 }).notNull(),
+  emailVerified: timestamp({ withTimezone: true }).defaultNow(),
+  image: varchar({ length: 255 }),
+  ...timestaps,
+});
+export const usersRelations = relations(users, ({ many }) => ({
+  accounts: many(accouns),
 }));
 
 export const verificationTokens = pgTable(
