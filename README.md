@@ -46,7 +46,7 @@ Copy the example env to create your own.
 cp .env.example .env
 ```
 
-Follow the instructions in the .env to generate a NextAuth secret, and check their to setup login with Github.
+Follow the instructions in the .env to generate a NextAuth secret, and check their docs to setup login with Github.
 
 Then, you need to setup your local database. To do that (and to start it every time after that) run:
 
