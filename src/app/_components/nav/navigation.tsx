@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const navigation = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
+  { name: "Patients", href: "/patients" },
 ];
 
 function classNames(...classes: string[]) {
