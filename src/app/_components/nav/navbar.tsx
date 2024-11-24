@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Navigation from "@/app/_components/nav/navigation";
 import {
   Disclosure,
   Menu,
@@ -7,6 +6,8 @@ import {
   MenuItem,
   MenuItems,
 } from "@headlessui/react";
+
+import Navigation from "@/app/_components/nav/navigation";
 import { auth } from "@/server/auth";
 import { api } from "@/trpc/server";
 
@@ -30,11 +31,13 @@ export default async function Navbar() {
                 Opti<span className="text-green-500">Nurse</span>
               </span>
             </Link>
-            <div className="hidden sm:ml-6 sm:block">
-              <div className="flex space-x-4">
-                <Navigation />
+            {session && (
+              <div className="hidden sm:ml-6 sm:block">
+                <div className="flex space-x-4">
+                  <Navigation />
+                </div>
               </div>
-            </div>
+            )}
           </div>
           <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
             {/* Profile dropdown */}
