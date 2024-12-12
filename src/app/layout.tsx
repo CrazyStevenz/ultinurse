@@ -1,11 +1,13 @@
 import "@/styles/globals.css";
 
-import { GeistSans } from "geist/font/sans";
+import { Geist } from "next/font/google";
 import { type ReactNode } from "react";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import Navbar from "@/app/_components/nav/navbar";
+
+const geist = Geist();
 
 export const metadata: Metadata = {
 	title: "OptiNurse",
@@ -17,7 +19,7 @@ export default function RootLayout({
 	children,
 }: Readonly<{ children: ReactNode }>) {
 	return (
-		<html lang="en" className={GeistSans.variable + " dark"}>
+		<html lang="en" className={geist.className + " dark"}>
 			<body className="bg-white text-black dark:bg-black dark:text-white">
 				<Navbar />
 
