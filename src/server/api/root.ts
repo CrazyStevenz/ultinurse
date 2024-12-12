@@ -8,8 +8,8 @@ import { patientRouter } from "@/server/api/routers/patient";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  caregiver: caregiverRouter,
-  patient: patientRouter,
+	caregiver: caregiverRouter,
+	patient: patientRouter,
 });
 
 // export type definition of API

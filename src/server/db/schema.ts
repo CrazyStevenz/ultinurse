@@ -1,139 +1,139 @@
 import { relations } from "drizzle-orm";
 import {
-  index,
-  integer,
-  pgTable,
-  primaryKey,
-  text,
-  timestamp,
-  uuid,
-  varchar,
+	index,
+	integer,
+	pgTable,
+	primaryKey,
+	text,
+	timestamp,
+	uuid,
+	varchar,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
 const timestamps = {
-  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+	createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+	updatedAt: timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
 };
 
 export const accounts = pgTable(
-  "account",
-  {
-    userId: uuid()
-      .notNull()
-      .references(() => users.id),
-    type: varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
-    provider: varchar({ length: 255 }).notNull(),
-    providerAccountId: varchar({ length: 255 }).notNull(),
+	"account",
+	{
+		userId: uuid()
+			.notNull()
+			.references(() => users.id),
+		type: varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
+		provider: varchar({ length: 255 }).notNull(),
+		providerAccountId: varchar({ length: 255 }).notNull(),
 
-    // These need an underscore, due to the adapter property naming of auth.js
-    refresh_token: text(),
-    access_token: text(),
-    expires_at: integer(),
-    token_type: varchar({ length: 255 }),
-    scope: varchar({ length: 255 }),
-    id_token: text(),
-    session_state: varchar({ length: 255 }),
+		// These need an underscore, due to the adapter property naming of auth.js
+		refresh_token: text(),
+		access_token: text(),
+		expires_at: integer(),
+		token_type: varchar({ length: 255 }),
+		scope: varchar({ length: 255 }),
+		id_token: text(),
+		session_state: varchar({ length: 255 }),
 
-    ...timestamps,
-  },
-  (account) => [
-    primaryKey({ columns: [account.provider, account.providerAccountId] }),
-    index("account_user_id_idx").on(account.userId),
-  ],
+		...timestamps,
+	},
+	(account) => [
+		primaryKey({ columns: [account.provider, account.providerAccountId] }),
+		index("account_user_id_idx").on(account.userId),
+	],
 );
 export const accountsRelations = relations(accounts, ({ one }) => ({
-  user: one(users, {
-    fields: [accounts.userId],
-    references: [users.id],
-  }),
+	user: one(users, {
+		fields: [accounts.userId],
+		references: [users.id],
+	}),
 }));
 
 export const caregivers = pgTable(
-  "caregiver",
-  {
-    id: integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: varchar({ length: 255 }),
-    userId: uuid()
-      .notNull()
-      .references(() => users.id),
-    ...timestamps,
-  },
-  (caregiver) => [
-    index("caregiver_user_id_idx").on(caregiver.userId),
-    index("caregiver_name_idx").on(caregiver.name),
-  ],
+	"caregiver",
+	{
+		id: integer().primaryKey().generatedByDefaultAsIdentity(),
+		name: varchar({ length: 255 }),
+		userId: uuid()
+			.notNull()
+			.references(() => users.id),
+		...timestamps,
+	},
+	(caregiver) => [
+		index("caregiver_user_id_idx").on(caregiver.userId),
+		index("caregiver_name_idx").on(caregiver.name),
+	],
 );
 
 export const patients = pgTable(
-  "patient",
-  {
-    id: integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: varchar({ length: 255 }),
-    ...timestamps,
-  },
-  (patient) => [index("patient_name_idx").on(patient.name)],
+	"patient",
+	{
+		id: integer().primaryKey().generatedByDefaultAsIdentity(),
+		name: varchar({ length: 255 }),
+		...timestamps,
+	},
+	(patient) => [index("patient_name_idx").on(patient.name)],
 );
 
 export const sessions = pgTable(
-  "session",
-  {
-    sessionToken: varchar({ length: 255 }).notNull().primaryKey(),
-    userId: uuid()
-      .notNull()
-      .references(() => users.id),
-    expires: timestamp({ withTimezone: true }).notNull(),
-    ...timestamps,
-  },
-  (session) => [index("session_user_id_idx").on(session.userId)],
+	"session",
+	{
+		sessionToken: varchar({ length: 255 }).notNull().primaryKey(),
+		userId: uuid()
+			.notNull()
+			.references(() => users.id),
+		expires: timestamp({ withTimezone: true }).notNull(),
+		...timestamps,
+	},
+	(session) => [index("session_user_id_idx").on(session.userId)],
 );
 export const sessionsRelations = relations(sessions, ({ one }) => ({
-  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+	user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
 export const shifts = pgTable(
-  "shift",
-  {
-    id: integer().primaryKey().generatedByDefaultAsIdentity(),
-    patientId: integer()
-      .notNull()
-      .references(() => patients.id),
-    startsAt: timestamp({ withTimezone: true }).notNull(),
-    endsAt: timestamp({ withTimezone: true }).notNull(),
-    ...timestamps,
-  },
-  (shift) => [index("shift_patient_id_idx").on(shift.patientId)],
+	"shift",
+	{
+		id: integer().primaryKey().generatedByDefaultAsIdentity(),
+		patientId: integer()
+			.notNull()
+			.references(() => patients.id),
+		startsAt: timestamp({ withTimezone: true }).notNull(),
+		endsAt: timestamp({ withTimezone: true }).notNull(),
+		...timestamps,
+	},
+	(shift) => [index("shift_patient_id_idx").on(shift.patientId)],
 );
 export const shiftRelations = relations(shifts, ({ one }) => ({
-  patient: one(patients, {
-    fields: [shifts.patientId],
-    references: [patients.id],
-  }),
+	patient: one(patients, {
+		fields: [shifts.patientId],
+		references: [patients.id],
+	}),
 }));
 
 export const users = pgTable("user", {
-  id: uuid().primaryKey().defaultRandom(),
-  name: varchar({ length: 255 }),
-  email: varchar({ length: 255 }).notNull(),
-  emailVerified: timestamp({ withTimezone: true }).defaultNow(),
-  image: varchar({ length: 255 }),
-  ...timestamps,
+	id: uuid().primaryKey().defaultRandom(),
+	name: varchar({ length: 255 }),
+	email: varchar({ length: 255 }).notNull(),
+	emailVerified: timestamp({ withTimezone: true }).defaultNow(),
+	image: varchar({ length: 255 }),
+	...timestamps,
 });
 export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts),
+	accounts: many(accounts),
 }));
 
 export const verificationTokens = pgTable(
-  "verification_token",
-  {
-    identifier: varchar({ length: 255 }).notNull(),
-    token: varchar({ length: 255 }).notNull(),
-    expires: timestamp({ withTimezone: true }).notNull(),
-    ...timestamps,
-  },
-  (verificationToken) => [
-    primaryKey({
-      columns: [verificationToken.identifier, verificationToken.token],
-    }),
-  ],
+	"verification_token",
+	{
+		identifier: varchar({ length: 255 }).notNull(),
+		token: varchar({ length: 255 }).notNull(),
+		expires: timestamp({ withTimezone: true }).notNull(),
+		...timestamps,
+	},
+	(verificationToken) => [
+		primaryKey({
+			columns: [verificationToken.identifier, verificationToken.token],
+		}),
+	],
 );
