@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@auth/drizzle-adapter':
-        specifier: 1.7.2
-        version: 1.7.2
+        specifier: 1.7.4
+        version: 1.7.4
       '@headlessui/react':
         specifier: 2.2.0
         version: 2.2.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -19,7 +19,7 @@ importers:
         version: 1.1.0(@types/react@18.3.12)(react@18.3.1)
       '@t3-oss/env-nextjs':
         specifier: 0.11.1
-        version: 0.11.1(typescript@5.6.3)(zod@3.23.8)
+        version: 0.11.1(typescript@5.6.3)(zod@3.24.1)
       '@tanstack/react-query':
         specifier: ^5.59.16
         version: 5.59.16(react@18.3.1)
@@ -39,8 +39,8 @@ importers:
         specifier: 2.1.1
         version: 2.1.1
       drizzle-orm:
-        specifier: 0.36.1
-        version: 0.36.1(@libsql/client-wasm@0.14.0)(@types/react@18.3.12)(postgres@3.4.5)(react@18.3.1)
+        specifier: 0.38.1
+        version: 0.38.1(@libsql/client-wasm@0.14.0)(@types/react@18.3.12)(postgres@3.4.5)(react@18.3.1)
       lucide-react:
         specifier: 0.460.0
         version: 0.460.0(react@18.3.1)
@@ -51,7 +51,7 @@ importers:
         specifier: 5.0.0-beta.25
         version: 5.0.0-beta.25(next@15.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)
       postgres:
-        specifier: ^3.4.4
+        specifier: 3.4.5
         version: 3.4.5
       react:
         specifier: 18.3.1
@@ -69,8 +69,8 @@ importers:
         specifier: 2.5.5
         version: 2.5.5
       zod:
-        specifier: ^3.23.3
-        version: 3.23.8
+        specifier: 3.24.1
+        version: 3.24.1
     devDependencies:
       '@types/eslint':
         specifier: 8.56.12
@@ -91,8 +91,8 @@ importers:
         specifier: ^8.1.0
         version: 8.11.0(eslint@8.57.1)(typescript@5.6.3)
       drizzle-kit:
-        specifier: 0.28.0
-        version: 0.28.0
+        specifier: 0.30.0
+        version: 0.30.0
       eslint:
         specifier: ^8.57.0
         version: 8.57.1
@@ -141,8 +141,22 @@ packages:
       nodemailer:
         optional: true
 
-  '@auth/drizzle-adapter@1.7.2':
-    resolution: {integrity: sha512-PrXsbzcOGkw9A/lHr44SIOw0FBdXm9Me5xzmLCC54anPTiMmOq2FnJLjnPPnZZ/IKVOfTkSNOn9w9jtQgl2mCw==}
+  '@auth/core@0.37.4':
+    resolution: {integrity: sha512-HOXJwXWXQRhbBDHlMU0K/6FT1v+wjtzdKhsNg0ZN7/gne6XPsIrjZ4daMcFnbq0Z/vsAbYBinQhhua0d77v7qw==}
+    peerDependencies:
+      '@simplewebauthn/browser': ^9.0.1
+      '@simplewebauthn/server': ^9.0.2
+      nodemailer: ^6.8.0
+    peerDependenciesMeta:
+      '@simplewebauthn/browser':
+        optional: true
+      '@simplewebauthn/server':
+        optional: true
+      nodemailer:
+        optional: true
+
+  '@auth/drizzle-adapter@1.7.4':
+    resolution: {integrity: sha512-OPZQakWWm5Hbx6okVMbtgI08WBliz/dCbFUXiPg9TThpp3Wh7MME/ubg4fW1oOp8P0gul6MkFvMVO733sVtd2w==}
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -1384,19 +1398,19 @@ packages:
     resolution: {integrity: sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==}
     engines: {node: '>=6.0.0'}
 
-  drizzle-kit@0.28.0:
-    resolution: {integrity: sha512-KqI+CS2Ga9GYIrXpxpCDUJJrH/AT/k4UY0Pb4oRgQEGkgN1EdCnqp664cXgwPWjDr5RBtTsjZipw8+8C//K63A==}
+  drizzle-kit@0.30.0:
+    resolution: {integrity: sha512-zAf0qg/BX2lV/Xip4igXrtbDv+Ub8S39U6qSOEGNvqcHrnmaQjS4mkkFZOUsgXRbuH56QUeWZxfnLHefrKCV5g==}
     hasBin: true
 
-  drizzle-orm@0.36.1:
-    resolution: {integrity: sha512-F4hbimnMEhyWzDowQB4xEuVJJWXLHZYD7FYwvo8RImY+N7pStGqsbfmT95jDbec1s4qKmQbiuxEDZY90LRrfIw==}
+  drizzle-orm@0.38.1:
+    resolution: {integrity: sha512-TpOzNrPGy7dl0/uP9vKD6ATzp9noJaRYhOYqtOCKxxwSmZqrPxN4SW5kWawVUIcbSd2lkbDCdZue+gtVNLmQsg==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
-      '@cloudflare/workers-types': '>=3'
+      '@cloudflare/workers-types': '>=4'
       '@electric-sql/pglite': '>=0.2.0'
       '@libsql/client': '>=0.10.0'
       '@libsql/client-wasm': '>=0.10.0'
-      '@neondatabase/serverless': '>=0.1'
+      '@neondatabase/serverless': '>=0.10.0'
       '@op-engineering/op-sqlite': '>=2'
       '@opentelemetry/api': ^1.4.1
       '@planetscale/database': '>=1'
@@ -1410,7 +1424,7 @@ packages:
       '@xata.io/client': '*'
       better-sqlite3: '>=7'
       bun-types: '*'
-      expo-sqlite: '>=13.2.0'
+      expo-sqlite: '>=14.0.0'
       knex: '*'
       kysely: '*'
       mysql2: '>=2'
@@ -2631,8 +2645,16 @@ packages:
     peerDependencies:
       preact: '>=10'
 
+  preact-render-to-string@6.5.11:
+    resolution: {integrity: sha512-ubnauqoGczeGISiOh6RjX0/cdaF8v/oDXIjO85XALCQjwQP+SB4RDXXtvZ6yTYSjG+PC1QRP2AhPgCEsM2EvUw==}
+    peerDependencies:
+      preact: '>=10'
+
   preact@10.11.3:
     resolution: {integrity: sha512-eY93IVpod/zG3uMF22Unl8h9KkrcKIRs2EGar8hwLZZDU1lkjph303V9HZBwufh2s736U6VXuhD109LYqPoffg==}
+
+  preact@10.24.3:
+    resolution: {integrity: sha512-Z2dPnBnMUfyQfSQ+GBdsGa16hz35YmLmtTLhM169uW944hYL6xzTYkJjC07j+Wosz733pMWx0fgON3JNw1jJQA==}
 
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
@@ -3234,8 +3256,8 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  zod@3.23.8:
-    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
+  zod@3.24.1:
+    resolution: {integrity: sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==}
 
 snapshots:
 
@@ -3251,9 +3273,17 @@ snapshots:
       preact: 10.11.3
       preact-render-to-string: 5.2.3(preact@10.11.3)
 
-  '@auth/drizzle-adapter@1.7.2':
+  '@auth/core@0.37.4':
     dependencies:
-      '@auth/core': 0.37.2
+      '@panva/hkdf': 1.2.1
+      jose: 5.9.6
+      oauth4webapi: 3.1.2
+      preact: 10.24.3
+      preact-render-to-string: 6.5.11(preact@10.24.3)
+
+  '@auth/drizzle-adapter@1.7.4':
+    dependencies:
+      '@auth/core': 0.37.4
     transitivePeerDependencies:
       - '@simplewebauthn/browser'
       - '@simplewebauthn/server'
@@ -3753,16 +3783,16 @@ snapshots:
     dependencies:
       tslib: 2.8.0
 
-  '@t3-oss/env-core@0.11.1(typescript@5.6.3)(zod@3.23.8)':
+  '@t3-oss/env-core@0.11.1(typescript@5.6.3)(zod@3.24.1)':
     dependencies:
-      zod: 3.23.8
+      zod: 3.24.1
     optionalDependencies:
       typescript: 5.6.3
 
-  '@t3-oss/env-nextjs@0.11.1(typescript@5.6.3)(zod@3.23.8)':
+  '@t3-oss/env-nextjs@0.11.1(typescript@5.6.3)(zod@3.24.1)':
     dependencies:
-      '@t3-oss/env-core': 0.11.1(typescript@5.6.3)(zod@3.23.8)
-      zod: 3.23.8
+      '@t3-oss/env-core': 0.11.1(typescript@5.6.3)(zod@3.24.1)
+      zod: 3.24.1
     optionalDependencies:
       typescript: 5.6.3
 
@@ -4429,7 +4459,7 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
-  drizzle-kit@0.28.0:
+  drizzle-kit@0.30.0:
     dependencies:
       '@drizzle-team/brocli': 0.10.2
       '@esbuild-kit/esm-loader': 2.6.5
@@ -4438,7 +4468,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.36.1(@libsql/client-wasm@0.14.0)(@types/react@18.3.12)(postgres@3.4.5)(react@18.3.1):
+  drizzle-orm@0.38.1(@libsql/client-wasm@0.14.0)(@types/react@18.3.12)(postgres@3.4.5)(react@18.3.1):
     optionalDependencies:
       '@libsql/client-wasm': 0.14.0
       '@types/react': 18.3.12
@@ -5720,7 +5750,13 @@ snapshots:
       preact: 10.11.3
       pretty-format: 3.8.0
 
+  preact-render-to-string@6.5.11(preact@10.24.3):
+    dependencies:
+      preact: 10.24.3
+
   preact@10.11.3: {}
+
+  preact@10.24.3: {}
 
   prelude-ls@1.2.1: {}
 
@@ -6395,4 +6431,4 @@ snapshots:
 
   yocto-queue@0.1.0: {}
 
-  zod@3.23.8: {}
+  zod@3.24.1: {}
