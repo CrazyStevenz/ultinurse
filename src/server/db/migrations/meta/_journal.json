@@ -15,6 +15,20 @@
       "when": 1731521401224,
       "tag": "0001_tearful_freak",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1734268556043,
+      "tag": "0002_rare_sleepwalker",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1734284153366,
+      "tag": "0003_fluffy_nightmare",
+      "breakpoints": true
     }
   ]
 }

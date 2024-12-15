@@ -1,6 +1,6 @@
 {
-  "id": "6df8840c-3c57-4e5c-867a-79448e678982",
-  "prevId": "dbbad31c-aaa9-4a16-a452-7b1d3c836396",
+  "id": "a9976c02-23ce-4530-a2b4-f4f72a9c2c8f",
+  "prevId": "6df8840c-3c57-4e5c-867a-79448e678982",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -261,6 +261,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "location": {
+          "name": "location",
+          "type": "geometry(point)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -289,6 +295,21 @@
           "isUnique": false,
           "concurrently": false,
           "method": "btree",
+          "with": {}
+        },
+        "spatial_index": {
+          "name": "spatial_index",
+          "columns": [
+            {
+              "expression": "location",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "gist",
           "with": {}
         }
       },

@@ -1,7 +1,9 @@
 "use client";
 
-import { api } from "@/trpc/react";
 import { Suspense } from "react";
+
+import { api } from "@/trpc/react";
+import Map from "@/app/_components/map";
 
 export default function Patients() {
 	const [readPatients] = api.patient.read.useSuspenseQuery();
@@ -34,6 +36,16 @@ export default function Patients() {
 						</Suspense>
 					</tbody>
 				</table>
+			</div>
+			<div className="container m-4 overflow-hidden rounded-xl border">
+				<Map
+					entities={readPatients.map((p) => {
+						return {
+							text: p.name,
+							location: p.location,
+						};
+					})}
+				/>
 			</div>
 		</main>
 	);

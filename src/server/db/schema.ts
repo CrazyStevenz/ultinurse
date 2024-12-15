@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+	geometry,
 	index,
 	integer,
 	pgTable,
@@ -53,7 +54,7 @@ export const caregivers = pgTable(
 	"caregiver",
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity(),
-		name: varchar({ length: 255 }),
+		name: varchar({ length: 255 }).notNull(),
 		userId: uuid()
 			.notNull()
 			.references(() => users.id),
@@ -69,10 +70,14 @@ export const patients = pgTable(
 	"patient",
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity(),
-		name: varchar({ length: 255 }),
+		name: varchar({ length: 255 }).notNull(),
+		location: geometry("location", { mode: "tuple", srid: 4326 }).notNull(),
 		...timestamps,
 	},
-	(patient) => [index("patient_name_idx").on(patient.name)],
+	(patient) => [
+		index("patient_name_idx").on(patient.name),
+		index("spatial_index").using("gist", patient.location),
+	],
 );
 
 export const sessions = pgTable(
