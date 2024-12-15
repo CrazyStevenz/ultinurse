@@ -3,11 +3,11 @@ import "leaflet/dist/leaflet.css";
 import { Icon } from "leaflet";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 
-import defaultIconPng from "leaflet/dist/images/marker-icon.png";
+import defaultIconPng from "leaflet/dist/images/marker-icon-2x.png";
 
 const defaultIcon = new Icon({
 	iconUrl: defaultIconPng as never,
-	iconSize: [25, 41],
+	iconSize: [30, 47],
 	iconAnchor: [12, 41],
 	popupAnchor: [1, -34],
 	shadowSize: [41, 41],
