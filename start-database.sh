@@ -29,4 +29,4 @@ podman run -d \
   -e POSTGRES_PASSWORD="$DATABASE_PASSWORD" \
   -e POSTGRES_DB="postgres" \
   -p 5432:5432 \
-  docker.io/postgres:17 && echo "Database container '$DB_CONTAINER_NAME' was successfully created"
+  docker.io/postgis/postgis:17-3.5 && echo "Database container '$DB_CONTAINER_NAME' was successfully created"
