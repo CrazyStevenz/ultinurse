@@ -28,6 +28,7 @@ export default function Map({
 			center={entities[0]?.location}
 			zoom={16}
 			className="w-full"
+			scrollWheelZoom={false}
 			style={{ height: "50rem" }} // TODO: After Tailwind v4, use h- class
 		>
 			<TileLayer
