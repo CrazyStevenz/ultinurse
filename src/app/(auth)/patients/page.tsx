@@ -4,12 +4,16 @@ import { Suspense } from "react";
 
 import { api } from "@/trpc/react";
 import Map from "@/app/_components/map";
+import { CreatePatient } from "@/app/(auth)/patients/create-patient";
 
 export default function Patients() {
 	const [readPatients] = api.patient.read.useSuspenseQuery();
 
 	return (
 		<main className="mx-2 flex min-h-screen flex-col items-center text-white">
+			<div className="container py-4 text-right">
+				<CreatePatient />
+			</div>
 			<div className="container flex flex-col rounded-xl border border-white/25">
 				<table className="w-auto table-fixed text-left">
 					<thead>
@@ -37,7 +41,7 @@ export default function Patients() {
 					</tbody>
 				</table>
 			</div>
-			<div className="container m-4 overflow-hidden rounded-xl border">
+			<div className="container z-0 m-4 overflow-hidden rounded-xl border">
 				<Map
 					entities={readPatients.map((p) => {
 						return {

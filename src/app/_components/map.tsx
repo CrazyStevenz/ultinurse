@@ -1,7 +1,14 @@
 import "leaflet/dist/leaflet.css";
 
-import { Icon } from "leaflet";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { type Dispatch, type SetStateAction } from "react";
+import { Icon, type LatLng } from "leaflet";
+import {
+	MapContainer,
+	Marker,
+	Popup,
+	TileLayer,
+	useMapEvents,
+} from "react-leaflet";
 
 import defaultIconPng from "leaflet/dist/images/marker-icon-2x.png";
 
@@ -20,26 +27,46 @@ const defaultIcon = new Icon({
 
 export default function Map({
 	entities,
+	position,
+	setPosition,
 }: {
-	entities: { text: string; location: [number, number] }[];
+	entities?: { text: string; location: [number, number] }[];
+	position?: LatLng | null;
+	setPosition?: Dispatch<SetStateAction<LatLng | null>>;
 }) {
 	return (
 		<MapContainer
-			center={entities[0]?.location}
+			center={entities?.[0]?.location ?? [40.636, 22.944]}
 			zoom={16}
-			className="w-full"
+			className="aspect-square w-full"
 			scrollWheelZoom={false}
-			style={{ height: "50rem" }} // TODO: After Tailwind v4, use h- class
 		>
 			<TileLayer
 				attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 				url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 			/>
-			{entities.map((entity, index) => (
+			<LocationMarker position={position} setPosition={setPosition} />
+			{entities?.map((entity, index) => (
 				<Marker key={index} position={entity.location} icon={defaultIcon}>
 					<Popup>{entity.text}</Popup>
 				</Marker>
 			))}
 		</MapContainer>
 	);
+}
+
+function LocationMarker({
+	position,
+	setPosition,
+}: {
+	position?: LatLng | null;
+	setPosition?: Dispatch<SetStateAction<LatLng | null>>;
+}) {
+	useMapEvents({
+		click(e) {
+			setPosition?.(e.latlng);
+		},
+	});
+
+	return position ? <Marker position={position} icon={defaultIcon} /> : null;
 }
