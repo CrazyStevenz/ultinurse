@@ -9,7 +9,7 @@ export default function Patients() {
 	const [readPatients] = api.patient.read.useSuspenseQuery();
 
 	return (
-		<main className="flex min-h-screen flex-col items-center bg-gradient-to-b from-black to-green-900 text-white">
+		<main className="mx-2 flex min-h-screen flex-col items-center text-white">
 			<div className="container flex flex-col rounded-xl border border-white/25">
 				<table className="w-auto table-fixed text-left">
 					<thead>

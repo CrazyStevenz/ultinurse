@@ -20,7 +20,7 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
 	return (
 		<html lang="en" className={geist.className + " dark"}>
-			<body className="bg-white text-black dark:bg-black dark:text-white">
+			<body className="min-h-screen bg-white bg-gradient-to-b from-black to-green-900 text-black dark:bg-black dark:text-white">
 				<Navbar />
 
 				<TRPCReactProvider>{children}</TRPCReactProvider>
