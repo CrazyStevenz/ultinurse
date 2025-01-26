@@ -7,7 +7,7 @@ import { type Metadata } from "next";
 import { TRPCReactProvider } from "@/trpc/react";
 import Navbar from "@/app/_components/nav/navbar";
 
-const geist = Geist();
+const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
 	title: "OptiNurse",
