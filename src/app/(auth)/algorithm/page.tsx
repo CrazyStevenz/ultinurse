@@ -202,7 +202,7 @@ export default function Patients() {
 	});
 
 	return (
-		<main className="flex min-h-screen flex-col items-center bg-gradient-to-b from-black to-green-900 text-white">
+		<div className="flex flex-col items-center">
 			<h1 className="mb-4 text-2xl font-bold">Nurse Fit Rankings</h1>
 			<p className="mb-6">
 				Matching nurses for patient <strong>{patient.name}</strong> with needs:{" "}
@@ -287,7 +287,7 @@ export default function Patients() {
 				</p>
 			) : (
 				<div className="mb-4 flex w-full justify-center">
-					<ul className="w-1/2">
+					<ul className="w-full md:w-1/2">
 						{filteredNurses.map((nurse, index) => (
 							<li
 								key={nurse.name}
@@ -318,6 +318,6 @@ export default function Patients() {
 					</ul>
 				</div>
 			)}
-		</main>
+		</div>
 	);
 }

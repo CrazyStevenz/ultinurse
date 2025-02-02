@@ -12,7 +12,7 @@ export default async function Home() {
 
 	return (
 		<HydrateClient>
-			<main className="flex min-h-[90vh] flex-col items-center justify-center text-white">
+			<div className="flex flex-col items-center justify-center">
 				<div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
 					<h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
 						Opti<span className="text-green-500">Nurse</span>
@@ -25,7 +25,7 @@ export default async function Home() {
 
 					{session?.user && <LatestCaregiver />}
 				</div>
-			</main>
+			</div>
 		</HydrateClient>
 	);
 }

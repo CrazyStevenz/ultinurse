@@ -2,7 +2,7 @@ import { Button } from "@/app/_components/ui/button";
 
 export default async function UIKit() {
 	return (
-		<main className="m-10 mt-5 flex min-h-screen flex-col items-start">
+		<div className="flex flex-col items-start">
 			<div className="flex flex-row items-center gap-5">
 				<span className="font-bold">Square Buttons:</span>
 				<Button variant="default">Button</Button>
@@ -79,6 +79,6 @@ export default async function UIKit() {
 					className="rounded-full px-4 py-2 text-black"
 				/>
 			</div>
-		</main>
+		</div>
 	);
 }

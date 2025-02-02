@@ -10,7 +10,7 @@ export default function Patients() {
 	const [readPatients] = api.patient.read.useSuspenseQuery();
 
 	return (
-		<main className="mx-2 flex min-h-screen flex-col items-center text-white">
+		<div className="flex flex-col items-center">
 			<div className="container py-4 text-right">
 				<CreatePatient />
 			</div>
@@ -51,6 +51,6 @@ export default function Patients() {
 					})}
 				/>
 			</div>
-		</main>
+		</div>
 	);
 }

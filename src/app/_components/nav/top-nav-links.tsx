@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const navigation = [
+const topNavLinks = [
 	{ name: "Home", href: "/" },
 	{ name: "Shifts", href: "/shifts" },
 	{ name: "Patients", href: "/patients" },
@@ -19,7 +19,7 @@ export default function Navigation() {
 
 	return (
 		<>
-			{navigation.map((item) => (
+			{topNavLinks.map((item) => (
 				<Link
 					key={item.name}
 					href={item.href}

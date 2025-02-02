@@ -3,7 +3,7 @@ import { HydrateClient } from "@/trpc/server";
 export default async function Shifts() {
 	return (
 		<HydrateClient>
-			<main className="flex min-h-screen flex-col items-center text-white">
+			<div className="flex flex-col items-center">
 				<div className="container flex flex-col rounded-xl border border-white/25">
 					<table className="w-auto table-fixed text-left">
 						<thead>
@@ -32,7 +32,7 @@ export default async function Shifts() {
 						</tbody>
 					</table>
 				</div>
-			</main>
+			</div>
 		</HydrateClient>
 	);
 }
