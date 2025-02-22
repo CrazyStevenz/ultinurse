@@ -1,7 +1,7 @@
 import "leaflet/dist/leaflet.css";
 
 import { type Dispatch, type SetStateAction } from "react";
-import { Icon, type LatLng } from "leaflet";
+import { icon, type LatLng } from "leaflet";
 import {
 	MapContainer,
 	Marker,
@@ -10,14 +10,12 @@ import {
 	useMapEvents,
 } from "react-leaflet";
 
-import defaultIconPng from "leaflet/dist/images/marker-icon-2x.png";
-
 // Fix required for map marker to show up, copied from:
 // https://github.com/PaulLeCam/react-leaflet/issues/1108#issuecomment-1998102993
 // We also take this chance to make the marker green, to better fit in with the
 // rest of the app.
-const defaultIcon = new Icon({
-	iconUrl: defaultIconPng as never,
+const defaultIcon = icon({
+	iconUrl: "marker-icon.png",
 	iconSize: [30, 47],
 	iconAnchor: [12, 41],
 	popupAnchor: [1, -34],
