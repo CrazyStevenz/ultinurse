@@ -3,8 +3,11 @@
 import { Suspense } from "react";
 
 import { api } from "@/trpc/react";
-import Map from "@/app/_components/map";
 import { CreatePatient } from "@/app/(auth)/patients/create-patient";
+import dynamic from "next/dynamic";
+
+// Leaflet needs access to "window", so we disable SSR for it
+const Map = dynamic(() => import("@/app/_components/map"), { ssr: false });
 
 export default function Patients() {
 	const [readPatients] = api.patient.read.useSuspenseQuery();
