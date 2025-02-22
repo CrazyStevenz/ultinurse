@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 
 import Navigation from "@/app/_components/nav/top-nav-links";
 import { auth } from "@/server/auth";
 import { api } from "@/trpc/server";
+import { LogIn, LogOut } from "lucide-react";
 
 export default async function TopNav() {
 	const session = await auth();
@@ -13,7 +13,7 @@ export default async function TopNav() {
 	}
 
 	return (
-		<div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+		<div className="container mx-auto">
 			<div className="relative flex h-16 items-center justify-between">
 				<div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
 					<Link
@@ -33,43 +33,20 @@ export default async function TopNav() {
 					)}
 				</div>
 				<div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-					{/* Profile dropdown */}
 					{session ? (
-						<Menu as="div" className="relative ml-3">
-							<div>
-								<MenuButton className="rounded-full bg-white/15 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20">
-									<span className="absolute -inset-1.5" />
-									<span className="sr-only">Open user menu</span>
-									{session && <span>{session.user.name}</span>}
-								</MenuButton>
-							</div>
-							<MenuItems
-								transition
-								className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white/15 py-1 shadow-lg ring-1 ring-black ring-opacity-5 transition focus:outline-none data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
-							>
-								<MenuItem>
-									<Link
-										href="#"
-										className="block px-4 py-2 text-sm text-white data-[focus]:bg-white/20 data-[focus]:outline-none"
-									>
-										Profile
-									</Link>
-								</MenuItem>
-								<MenuItem>
-									<Link
-										href="/api/auth/signout"
-										className="block px-4 py-2 text-sm text-white data-[focus]:bg-white/20 data-[focus]:outline-none"
-									>
-										Sign out
-									</Link>
-								</MenuItem>
-							</MenuItems>
-						</Menu>
+						<Link
+							href="/api/auth/signout"
+							className="rounded-full bg-red-600 px-5 py-2 font-semibold text-white no-underline transition hover:bg-red-500"
+						>
+							<LogOut className="mb-1 inline-flex h-6 w-6 dark:group-hover:text-red-600" />{" "}
+							Sign out
+						</Link>
 					) : (
 						<Link
 							href="/api/auth/signin"
-							className="rounded-full bg-green-700 px-10 py-3 font-semibold text-white no-underline transition hover:bg-green-600"
+							className="rounded-full bg-green-600 px-5 py-2 font-semibold text-white no-underline transition hover:bg-green-500"
 						>
+							<LogIn className="mb-1 inline-flex h-6 w-6 dark:group-hover:text-green-600" />{" "}
 							Sign in
 						</Link>
 					)}
