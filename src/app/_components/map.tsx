@@ -36,7 +36,7 @@ export default function Map({
 		<MapContainer
 			center={entities?.[0]?.location ?? [40.636, 22.944]}
 			zoom={16}
-			className="aspect-square w-full"
+			className="aspect-square w-full md:aspect-video"
 			scrollWheelZoom={false}
 		>
 			<TileLayer
