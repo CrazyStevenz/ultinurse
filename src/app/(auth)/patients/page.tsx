@@ -1,10 +1,10 @@
 "use client";
 
 import { Suspense } from "react";
+import dynamic from "next/dynamic";
 
 import { api } from "@/trpc/react";
 import { CreatePatient } from "@/app/(auth)/patients/create-patient";
-import dynamic from "next/dynamic";
 
 // Leaflet needs access to "window", so we disable SSR for it
 const Map = dynamic(() => import("@/app/_components/map"), { ssr: false });
