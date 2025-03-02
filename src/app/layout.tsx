@@ -22,17 +22,17 @@ export default function RootLayout({
 	return (
 		<html lang="en" className={geist.className + " dark"}>
 			<body className="min-h-screen bg-white bg-gradient-to-b from-black to-green-900 text-black dark:bg-black dark:text-white">
-				<nav className="hidden md:block">
-					<TopNav />
-				</nav>
+				<TRPCReactProvider>
+					<nav className="hidden md:block">
+						<TopNav />
+					</nav>
 
-				<main className="mx-2 min-h-[85vh] py-2">
-					<TRPCReactProvider>{children}</TRPCReactProvider>
-				</main>
+					<main className="mx-2 min-h-[85vh] py-2">{children}</main>
 
-				<nav className="mt-14 md:mt-0 md:hidden">
-					<BottomNav />
-				</nav>
+					<nav className="mt-14 md:mt-0 md:hidden">
+						<BottomNav />
+					</nav>
+				</TRPCReactProvider>
 			</body>
 		</html>
 	);
