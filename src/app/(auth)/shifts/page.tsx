@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import ShiftsTableData from "@/app/(auth)/shifts/shift-table";
+import ShiftsTableData from "@/app/(auth)/shifts/shift-table-data";
 import { api, HydrateClient } from "@/trpc/server";
 
 export const metadata: Metadata = {
