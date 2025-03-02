@@ -23,18 +23,20 @@ const defaultIcon = icon({
 	className: "filter -hue-rotate-60",
 });
 
+export type MapMarker = { text: string; location: [number, number] };
+
 export default function Map({
-	entities,
+	markers,
 	position,
 	setPosition,
 }: {
-	entities?: { text: string; location: [number, number] }[];
+	markers?: MapMarker[];
 	position?: LatLng | null;
 	setPosition?: Dispatch<SetStateAction<LatLng | null>>;
 }) {
 	return (
 		<MapContainer
-			center={entities?.[0]?.location ?? [40.636, 22.944]}
+			center={markers?.[0]?.location ?? [40.636, 22.944]}
 			zoom={16}
 			className="aspect-square w-full md:aspect-video"
 			scrollWheelZoom={false}
@@ -44,7 +46,7 @@ export default function Map({
 				url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 			/>
 			<LocationMarker position={position} setPosition={setPosition} />
-			{entities?.map((entity, index) => (
+			{markers?.map((entity, index) => (
 				<Marker key={index} position={entity.location} icon={defaultIcon}>
 					<Popup>{entity.text}</Popup>
 				</Marker>

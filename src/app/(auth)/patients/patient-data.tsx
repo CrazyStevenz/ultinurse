@@ -1,0 +1,71 @@
+"use client";
+
+import dynamic from "next/dynamic";
+
+import { api } from "@/trpc/react";
+
+// Leaflet needs access to "window", so we disable SSR for it
+const Map = dynamic(() => import("@/app/_components/map"), { ssr: false });
+
+export default function PatientData() {
+	const { data, isLoading, error } = api.patient.read.useQuery();
+
+	return (
+		<>
+			<div className="flex flex-col rounded-xl border border-white/25">
+				<table className="w-auto table-fixed text-left">
+					<thead>
+						<tr className="border-b border-white/20">
+							<th className="w-16 p-4 py-3">ID</th>
+							<th>Name</th>
+							<th className="p-4 text-right">Registered on</th>
+						</tr>
+					</thead>
+					<tbody>
+						{isLoading || !data || error ? (
+							<tr className="border-b border-white/15 last:border-b-0">
+								<td className="animate-pulse p-4">
+									<div className="my-2 h-2 w-4 rounded bg-gray-200"></div>
+								</td>
+								<td className="animate-pulse">
+									<div className="h-2 w-20 rounded bg-gray-200"></div>
+								</td>
+								<td className="animate-pulse pr-4 text-right">
+									<div className="float-right h-2 w-32 rounded bg-gray-200"></div>
+								</td>
+							</tr>
+						) : (
+							data.map((patient) => (
+								<tr
+									key={patient.id}
+									className="border-b border-white/15 last:border-b-0"
+								>
+									<td className="p-4">{patient.id}</td>
+									<td>{patient.name}</td>
+									<td className="pr-4 text-right">
+										{patient.createdAt.toDateString()}
+									</td>
+								</tr>
+							))
+						)}
+					</tbody>
+				</table>
+			</div>
+
+			<div className="z-0 mt-4 overflow-hidden rounded-xl border">
+				<Map
+					markers={
+						isLoading || !data || error
+							? []
+							: data.map((p) => {
+									return {
+										text: p.name,
+										location: p.location,
+									};
+								})
+					}
+				/>
+			</div>
+		</>
+	);
+}

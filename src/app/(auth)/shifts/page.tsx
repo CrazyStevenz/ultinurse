@@ -17,7 +17,7 @@ export default async function Shifts() {
 					<table className="w-auto table-fixed text-left">
 						<thead>
 							<tr className="border-b border-white/20">
-								<th className="p-4 py-3">ID</th>
+								<th className="w-16 p-4 py-3">ID</th>
 								<th>Patient</th>
 								<th className="p-4 text-right">Registered on</th>
 							</tr>
