@@ -8,7 +8,7 @@ import { api } from "@/trpc/react";
 const Map = dynamic(() => import("@/app/_components/map"), { ssr: false });
 
 export default function PatientData() {
-	const { data, isLoading, error } = api.patient.read.useQuery();
+	const { data, isLoading } = api.patient.read.useQuery();
 
 	return (
 		<>
@@ -22,7 +22,7 @@ export default function PatientData() {
 						</tr>
 					</thead>
 					<tbody>
-						{isLoading || !data || error ? (
+						{isLoading || !data ? (
 							<tr className="border-b border-white/15 last:border-b-0">
 								<td className="animate-pulse p-4">
 									<div className="my-2 h-2 w-4 rounded bg-gray-200"></div>
@@ -55,7 +55,7 @@ export default function PatientData() {
 			<div className="z-0 mt-4 overflow-hidden rounded-xl border">
 				<Map
 					markers={
-						isLoading || !data || error
+						isLoading || !data
 							? []
 							: data.map((p) => {
 									return {
