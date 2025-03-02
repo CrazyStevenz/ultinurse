@@ -3,9 +3,9 @@
 import { api } from "@/trpc/react";
 
 export default function ShiftsTableData() {
-	const { data, isLoading, error } = api.shift.read.useQuery();
+	const { data, isLoading } = api.shift.read.useQuery();
 
-	if (isLoading)
+	if (isLoading || !data)
 		return (
 			<tr className="border-b border-white/15 last:border-b-0">
 				<td className="animate-pulse p-4">
@@ -19,8 +19,6 @@ export default function ShiftsTableData() {
 				</td>
 			</tr>
 		);
-
-	if (!data || error) return "Error";
 
 	return data.map(({ shift, patient }) => (
 		<tr key={shift.id} className="border-b border-white/15 last:border-b-0">
