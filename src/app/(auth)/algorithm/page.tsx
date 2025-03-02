@@ -80,6 +80,8 @@ export default function Patients() {
 				{patient.needs.join(", ")}. Distance thresholds:{" "}
 				<strong>{distanceA}</strong> and <strong>{distanceB}</strong>.
 			</p>
+
+			{/* Weights Adjustment */}
 			<div className="mb-6 w-1/2">
 				<h2 className="mb-4 text-xl font-semibold">Adjust Weights</h2>
 				<div className="mb-4">
@@ -128,6 +130,39 @@ export default function Patients() {
 					/>
 				</div>
 			</div>
+
+			{/* Checkboxes to filter nurses */}
+			<div className="mb-6">
+				<h2 className="mb-4 text-xl font-semibold">Filter Nurses</h2>
+				<div className="mb-4">
+					<input
+						type="checkbox"
+						checked={showMeetsAllNeeds}
+						onChange={() => setShowMeetsAllNeeds(!showMeetsAllNeeds)}
+					/>
+					<label className="ml-2">Show nurses that meet all needs</label>
+				</div>
+				<div className="mb-4">
+					<input
+						type="checkbox"
+						checked={showPartiallyMeetsNeeds}
+						onChange={() =>
+							setShowPartiallyMeetsNeeds(!showPartiallyMeetsNeeds)
+						}
+					/>
+					<label className="ml-2">Show nurses that partially meet needs</label>
+				</div>
+				<div className="mb-4">
+					<input
+						type="checkbox"
+						checked={showOutOfBounds}
+						onChange={() => setShowOutOfBounds(!showOutOfBounds)}
+					/>
+					<label className="ml-2">Show out of bounds nurses</label>
+				</div>
+			</div>
+
+			{/* Display nurses */}
 			{filteredNurses.length === 0 ? (
 				<p className="text-center text-red-500">
 					No nurses available to meet patient {patient.name}&apos;s needs within

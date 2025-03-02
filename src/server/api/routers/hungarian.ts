@@ -117,6 +117,7 @@ function calculateFitPercentage(
 	weekendWeight: number,
 	distanceWeight: number,
 	distanceA: number,
+	allNurses: MockNurses[],
 ): number {
 	const totalNeeds = patient.needs.length;
 	const matchedNeeds = nurse.competencies.filter((competency) =>
@@ -133,14 +134,42 @@ function calculateFitPercentage(
 	const distanceFit =
 		nurse.distance <= distanceA ? 100 - (nurse.distance / distanceA) * 100 : 0;
 
-	// Calculate weighted fit
-	return (
+	// Calculate the weighted fit for the current nurse
+	const currentFit =
 		(needsFit +
 			nightFit * nightWeight +
 			weekendFit * weekendWeight +
 			distanceFit * distanceWeight) /
-		(1 + nightWeight + weekendWeight + distanceWeight)
+		(1 + nightWeight + weekendWeight + distanceWeight);
+
+	// Find the maximum fit percentage from all nurses
+	const maxFit = Math.max(
+		...allNurses.map((n) => {
+			const totalNeeds = patient.needs.length;
+			const matchedNeeds = n.competencies.filter((competency) =>
+				patient.needs.includes(competency),
+			).length;
+
+			const needsFit = (matchedNeeds / totalNeeds) * 100;
+
+			const nightFit = n.worksNights ? 100 : 0;
+			const weekendFit = n.worksWeekends ? 100 : 0;
+
+			const distanceFit =
+				n.distance <= distanceA ? 100 - (n.distance / distanceA) * 100 : 0;
+
+			return (
+				(needsFit +
+					nightFit * nightWeight +
+					weekendFit * weekendWeight +
+					distanceFit * distanceWeight) /
+				(1 + nightWeight + weekendWeight + distanceWeight)
+			);
+		}),
 	);
+
+	// Normalize the current fit based on the maximum fit, scaling it to a percentage of 100
+	return (currentFit / maxFit) * 100;
 }
 
 function nurseMeetsAllNeeds(patient: MockPatient, nurse: MockNurses): boolean {
@@ -162,6 +191,7 @@ function getNursesSortedByFit(
 				weights.weekendWeight,
 				weights.distanceWeight,
 				distanceA,
+				MockNurses,
 			),
 			distance: nurse.distance,
 			meetsAllNeeds: nurseMeetsAllNeeds(patient, nurse),
