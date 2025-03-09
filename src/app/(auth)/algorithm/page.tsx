@@ -1,205 +1,76 @@
 "use client";
 
-import { useState } from "react";
-
-type MockNurses = {
-	name: string;
-	competencies: string[];
-	distance: number;
-	worksNights: boolean;
-	worksWeekends: boolean;
-};
-
-type MockPatient = {
-	name: string;
-	needs: string[];
-};
-
-const MockPatients: [MockPatient, ...MockPatient[]] = [
-	{
-		name: "P1",
-		needs: ["A", "C", "B"],
-	},
-];
-
-const MockNurses: MockNurses[] = [
-	{
-		name: "N1",
-		competencies: ["A", "C", "E"],
-		distance: 1,
-		worksNights: true,
-		worksWeekends: false,
-	},
-	{
-		name: "N2",
-		competencies: ["B", "D", "F"],
-		distance: 3,
-		worksNights: false,
-		worksWeekends: true,
-	},
-	{
-		name: "N3",
-		competencies: ["A", "B", "C"],
-		distance: 4,
-		worksNights: true,
-		worksWeekends: true,
-	},
-	{
-		name: "N4",
-		competencies: ["F", "C", "D"],
-		distance: 5,
-		worksNights: false,
-		worksWeekends: false,
-	},
-	{
-		name: "N5",
-		competencies: ["B", "A", "D"],
-		distance: 10,
-		worksNights: true,
-		worksWeekends: false,
-	},
-	{
-		name: "N6",
-		competencies: ["E", "A", "F"],
-		distance: 2,
-		worksNights: false,
-		worksWeekends: true,
-	},
-	{
-		name: "N7",
-		competencies: ["B", "A", "C"],
-		distance: 15,
-		worksNights: true,
-		worksWeekends: true,
-	},
-	{
-		name: "N8",
-		competencies: ["D", "E", "F"],
-		distance: 23,
-		worksNights: false,
-		worksWeekends: false,
-	},
-	{
-		name: "N9",
-		competencies: ["E", "A", "B"],
-		distance: 8,
-		worksNights: false,
-		worksWeekends: true,
-	},
-	{
-		name: "N10",
-		competencies: ["D", "A", "E"],
-		distance: 7,
-		worksNights: true,
-		worksWeekends: false,
-	},
-];
-
-function calculateFitPercentage(
-	patient: MockPatient,
-	nurse: MockNurses,
-	nightWeight: number,
-	weekendWeight: number,
-	distanceWeight: number,
-	distanceA: number,
-): number {
-	const totalNeeds = patient.needs.length;
-	const matchedNeeds = nurse.competencies.filter((competency) =>
-		patient.needs.includes(competency),
-	).length;
-
-	const needsFit = (matchedNeeds / totalNeeds) * 100;
-
-	// Night and weekend weight factors
-	const nightFit = nurse.worksNights ? 100 : 0;
-	const weekendFit = nurse.worksWeekends ? 100 : 0;
-
-	// Distance fit within bounds
-	const distanceFit =
-		nurse.distance <= distanceA ? 100 - (nurse.distance / distanceA) * 100 : 0;
-
-	// Calculate weighted fit
-	return (
-		(needsFit +
-			nightFit * nightWeight +
-			weekendFit * weekendWeight +
-			distanceFit * distanceWeight) /
-		(1 + nightWeight + weekendWeight + distanceWeight)
-	);
-}
-
-function nurseMeetsAllNeeds(patient: MockPatient, nurse: MockNurses): boolean {
-	return patient.needs.every((need) => nurse.competencies.includes(need));
-}
-
-function getNursesSortedByFit(
-	patient: MockPatient,
-	nurses: MockNurses[],
-	nightWeight: number,
-	weekendWeight: number,
-	distanceWeight: number,
-	distanceA: number,
-	distanceB: number,
-): {
-	name: string;
-	percentage: number;
-	distance: number;
-	meetsAllNeeds: boolean;
-	outOfBounds: boolean;
-}[] {
-	const nurseFitScores = nurses.map((nurse) => ({
-		name: nurse.name,
-		percentage: calculateFitPercentage(
-			patient,
-			nurse,
-			nightWeight,
-			weekendWeight,
-			distanceWeight,
-			distanceA,
-		),
-		distance: nurse.distance,
-		meetsAllNeeds: nurseMeetsAllNeeds(patient, nurse),
-		outOfBounds: nurse.distance > distanceB,
-	}));
-
-	return nurseFitScores.sort((a, b) => b.percentage - a.percentage);
-}
+import { api } from "@/trpc/react";
+import { useState, useEffect } from "react";
 
 export default function Patients() {
-	const patient = MockPatients[0] ?? {
-		name: "Unknown Patient",
-		needs: [],
-	};
-
 	const distanceA = 5;
 	const distanceB = 15;
+	const patient: MockPatient = {
+		name: "P1",
+		needs: ["A", "C", "B"],
+	};
 
-	const [nightWeight, setNightWeight] = useState(1); // Default weight for night shift
-	const [weekendWeight, setWeekendWeight] = useState(1); // Default weight for weekend shift
-	const [distanceWeight, setDistanceWeight] = useState(1); // Default weight for distance
+	type MockPatient = {
+		name: string;
+		needs: string[];
+	};
+
+	const [nightWeight, setNightWeight] = useState(1);
+	const [weekendWeight, setWeekendWeight] = useState(1);
+	const [distanceWeight, setDistanceWeight] = useState(1);
 
 	const [showMeetsAllNeeds, setShowMeetsAllNeeds] = useState(true);
 	const [showPartiallyMeetsNeeds, setShowPartiallyMeetsNeeds] = useState(true);
 	const [showOutOfBounds, setShowOutOfBounds] = useState(true);
 
-	const sortedNurses = getNursesSortedByFit(
-		patient,
-		MockNurses,
-		nightWeight,
-		weekendWeight,
-		distanceWeight,
-		distanceA,
-		distanceB,
-	);
+	const {
+		data: nursesData,
+		isLoading,
+		error,
+		refetch,
+	} = api.hungarian.read.useQuery();
 
-	const filteredNurses = sortedNurses.filter((nurse) => {
-		if (nurse.outOfBounds && !showOutOfBounds) return false;
-		if (nurse.meetsAllNeeds && !nurse.outOfBounds && !showMeetsAllNeeds)
-			return false;
-		if (!nurse.meetsAllNeeds && !nurse.outOfBounds && !showPartiallyMeetsNeeds)
-			return false;
-		return true;
+	const createWeights = api.hungarian.create.useMutation({
+		onSuccess: () => {
+			void refetch(); // Refetch nurses after weights update
+		},
 	});
+
+	// Function to handle weight changes and trigger the mutation
+	const handleWeightChange = (type: string, value: number) => {
+		if (type === "night") setNightWeight(value);
+		if (type === "weekend") setWeekendWeight(value);
+		if (type === "distance") setDistanceWeight(value);
+
+		createWeights.mutate({
+			nightWeight: type === "night" ? value : nightWeight,
+			weekendWeight: type === "weekend" ? value : weekendWeight,
+			distanceWeight: type === "distance" ? value : distanceWeight,
+		});
+	};
+
+	const filteredNurses =
+		nursesData?.filter((nurse) => {
+			if (nurse.outOfBounds && !showOutOfBounds) return false;
+			if (nurse.meetsAllNeeds && !nurse.outOfBounds && !showMeetsAllNeeds)
+				return false;
+			if (
+				!nurse.meetsAllNeeds &&
+				!nurse.outOfBounds &&
+				!showPartiallyMeetsNeeds
+			)
+				return false;
+			return true;
+		}) ?? [];
+
+	if (isLoading) {
+		return <p>Loading nurses...</p>;
+	}
+
+	if (error) {
+		return <p>Error loading nurses: {error.message}</p>;
+	}
 
 	return (
 		<div className="flex flex-col items-center">
@@ -209,6 +80,8 @@ export default function Patients() {
 				{patient.needs.join(", ")}. Distance thresholds:{" "}
 				<strong>{distanceA}</strong> and <strong>{distanceB}</strong>.
 			</p>
+
+			{/* Weights Adjustment */}
 			<div className="mb-6 w-1/2">
 				<h2 className="mb-4 text-xl font-semibold">Adjust Weights</h2>
 				<div className="mb-4">
@@ -220,7 +93,9 @@ export default function Patients() {
 						min="0"
 						max="5"
 						value={nightWeight}
-						onChange={(e) => setNightWeight(Number(e.target.value))}
+						onChange={(e) =>
+							handleWeightChange("night", Number(e.target.value))
+						}
 						className="w-full"
 					/>
 				</div>
@@ -233,7 +108,9 @@ export default function Patients() {
 						min="0"
 						max="5"
 						value={weekendWeight}
-						onChange={(e) => setWeekendWeight(Number(e.target.value))}
+						onChange={(e) =>
+							handleWeightChange("weekend", Number(e.target.value))
+						}
 						className="w-full"
 					/>
 				</div>
@@ -246,40 +123,46 @@ export default function Patients() {
 						min="0"
 						max="5"
 						value={distanceWeight}
-						onChange={(e) => setDistanceWeight(Number(e.target.value))}
+						onChange={(e) =>
+							handleWeightChange("distance", Number(e.target.value))
+						}
 						className="w-full"
 					/>
 				</div>
 			</div>
+
+			{/* Checkboxes to filter nurses */}
 			<div className="mb-6">
-				<label className="mb-2 block">
+				<h2 className="mb-4 text-xl font-semibold">Filter Nurses</h2>
+				<div className="mb-4">
 					<input
 						type="checkbox"
 						checked={showMeetsAllNeeds}
-						onChange={(e) => setShowMeetsAllNeeds(e.target.checked)}
-						className="mr-2"
+						onChange={() => setShowMeetsAllNeeds(!showMeetsAllNeeds)}
 					/>
-					Show nurses who meet all needs
-				</label>
-				<label className="mb-2 block">
+					<label className="ml-2">Show nurses that meet all needs</label>
+				</div>
+				<div className="mb-4">
 					<input
 						type="checkbox"
 						checked={showPartiallyMeetsNeeds}
-						onChange={(e) => setShowPartiallyMeetsNeeds(e.target.checked)}
-						className="mr-2"
+						onChange={() =>
+							setShowPartiallyMeetsNeeds(!showPartiallyMeetsNeeds)
+						}
 					/>
-					Show nurses who partially meet needs
-				</label>
-				<label className="block">
+					<label className="ml-2">Show nurses that partially meet needs</label>
+				</div>
+				<div className="mb-4">
 					<input
 						type="checkbox"
 						checked={showOutOfBounds}
-						onChange={(e) => setShowOutOfBounds(e.target.checked)}
-						className="mr-2"
+						onChange={() => setShowOutOfBounds(!showOutOfBounds)}
 					/>
-					Show out-of-bounds nurses
-				</label>
+					<label className="ml-2">Show out of bounds nurses</label>
+				</div>
 			</div>
+
+			{/* Display nurses */}
 			{filteredNurses.length === 0 ? (
 				<p className="text-center text-red-500">
 					No nurses available to meet patient {patient.name}&apos;s needs within
