@@ -52,7 +52,7 @@ export default function PatientData() {
 				</table>
 			</div>
 
-			<div className="z-0 mt-4 overflow-hidden rounded-xl border">
+			<div className="mt-4 overflow-hidden rounded-xl border">
 				<Map
 					markers={
 						isLoading || !data

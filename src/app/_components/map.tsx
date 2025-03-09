@@ -38,7 +38,7 @@ export default function Map({
 		<MapContainer
 			center={markers?.[0]?.location ?? [40.636, 22.944]}
 			zoom={16}
-			className="aspect-square w-full md:aspect-video"
+			className="z-0 aspect-square w-full md:aspect-video"
 			scrollWheelZoom={false}
 		>
 			<TileLayer
