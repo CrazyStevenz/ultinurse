@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 import { api } from "@/trpc/react";
-import Map from "@/app/_components/map";
 import {
 	Dialog,
 	DialogContent,
@@ -15,6 +14,10 @@ import {
 } from "@/app/_components/ui/dialog";
 import { Button } from "@/app/_components/ui/button";
 import type { LatLng } from "leaflet";
+import dynamic from "next/dynamic";
+
+// Leaflet needs access to "window", so we disable SSR for it
+const Map = dynamic(() => import("@/app/_components/map"), { ssr: false });
 
 export function CreatePatient() {
 	const [open, setOpen] = useState(false);

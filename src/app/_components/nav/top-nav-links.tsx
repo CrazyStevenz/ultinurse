@@ -26,9 +26,9 @@ export default function Navigation() {
 					aria-current={item.href === pathname ? "page" : undefined}
 					className={classNames(
 						item.href === pathname
-							? "bg-white/20 text-white"
-							: "text-gray-300 hover:bg-white/20 hover:text-white",
-						"rounded-md px-3 py-2 text-sm font-medium",
+							? "bg-[#303030] text-white"
+							: "text-gray-300 hover:bg-[#202020] hover:text-white",
+						"rounded-md px-3 py-2 font-medium",
 					)}
 				>
 					{item.name}
