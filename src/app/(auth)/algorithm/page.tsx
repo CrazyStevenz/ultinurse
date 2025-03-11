@@ -1,7 +1,29 @@
 "use client";
-
 import { api } from "@/trpc/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import NursesPanel from "./nursesPanel";
+
+type MockPatient = {
+	name: string;
+	needs: string[];
+};
+
+type AlgorithmType = "HUNGARIAN" | "GREEDY";
+
+// interface NurseData {
+// 	name: string;
+// 	percentage: number;
+// 	distance: number;
+// 	meetsAllNeeds: boolean;
+// 	outOfBounds: boolean;
+// }
+
+// interface WeightsInput {
+// 	nightWeight: number;
+// 	weekendWeight: number;
+// 	distanceWeight: number;
+// 	algorithmType: AlgorithmType;
+// }
 
 export default function Patients() {
 	const distanceA = 5;
@@ -11,15 +33,11 @@ export default function Patients() {
 		needs: ["A", "C", "B"],
 	};
 
-	type MockPatient = {
-		name: string;
-		needs: string[];
-	};
-
 	const [nightWeight, setNightWeight] = useState(1);
 	const [weekendWeight, setWeekendWeight] = useState(1);
 	const [distanceWeight, setDistanceWeight] = useState(1);
-
+	const [algorithmType, setAlgorithmType] =
+		useState<AlgorithmType>("HUNGARIAN");
 	const [showMeetsAllNeeds, setShowMeetsAllNeeds] = useState(true);
 	const [showPartiallyMeetsNeeds, setShowPartiallyMeetsNeeds] = useState(true);
 	const [showOutOfBounds, setShowOutOfBounds] = useState(true);
@@ -28,26 +46,31 @@ export default function Patients() {
 		data: nursesData,
 		isLoading,
 		error,
-		refetch,
-	} = api.hungarian.read.useQuery();
-
-	const createWeights = api.hungarian.create.useMutation({
-		onSuccess: () => {
-			void refetch(); // Refetch nurses after weights update
-		},
+	} = api.hungarian.read.useQuery({
+		nightWeight,
+		weekendWeight,
+		distanceWeight,
+		algorithmType,
 	});
 
-	// Function to handle weight changes and trigger the mutation
-	const handleWeightChange = (type: string, value: number) => {
-		if (type === "night") setNightWeight(value);
-		if (type === "weekend") setWeekendWeight(value);
-		if (type === "distance") setDistanceWeight(value);
-
-		createWeights.mutate({
-			nightWeight: type === "night" ? value : nightWeight,
-			weekendWeight: type === "weekend" ? value : weekendWeight,
-			distanceWeight: type === "distance" ? value : distanceWeight,
-		});
+	const handleWeightChange = (
+		type: "night" | "weekend" | "distance" | "algorithmType",
+		value: number | AlgorithmType,
+	) => {
+		switch (type) {
+			case "night":
+				setNightWeight(value as number);
+				break;
+			case "weekend":
+				setWeekendWeight(value as number);
+				break;
+			case "distance":
+				setDistanceWeight(value as number);
+				break;
+			case "algorithmType":
+				setAlgorithmType(value as AlgorithmType);
+				break;
+		}
 	};
 
 	const filteredNurses =
@@ -114,7 +137,7 @@ export default function Patients() {
 						className="w-full"
 					/>
 				</div>
-				<div>
+				<div className="mb-4">
 					<label className="mb-2 block">
 						Distance Weight: {distanceWeight}
 					</label>
@@ -128,6 +151,22 @@ export default function Patients() {
 						}
 						className="w-full"
 					/>
+				</div>
+				<div className="mt-4">
+					<label className="mb-2 block">Algorithm Type:</label>
+					<select
+						value={algorithmType}
+						onChange={(e) =>
+							handleWeightChange(
+								"algorithmType",
+								e.target.value as AlgorithmType,
+							)
+						}
+						className="w-full rounded border p-2"
+					>
+						<option value="HUNGARIAN">Hungarian Algorithm</option>
+						<option value="GREEDY">Greedy Algorithm</option>
+					</select>
 				</div>
 			</div>
 
@@ -201,6 +240,7 @@ export default function Patients() {
 					</ul>
 				</div>
 			)}
+			<NursesPanel nurses={filteredNurses} patientName={patient.name} />
 		</div>
 	);
 }

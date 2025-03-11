@@ -180,6 +180,7 @@ function getNursesSortedByFit(
 	patient: MockPatient,
 	nurses: MockNurses[],
 	weights: Weights,
+	algorithmType: string,
 ) {
 	return nurses
 		.map((nurse) => ({
@@ -200,24 +201,33 @@ function getNursesSortedByFit(
 		.sort((a, b) => b.percentage - a.percentage);
 }
 
+const AlgorithmType = {
+	HUNGARIAN: "HUNGARIAN",
+	GREEDY: "GREEDY",
+} as const;
+
 export const hungarianRouter = createTRPCRouter({
-	read: protectedProcedure.query(async ({ ctx }) => {
-		//const caregiversObj: MockNurses = await ctx.db.select().from(caregivers);
-		//const patientsObj: MockPatient = await ctx.db.select().from(patients);
-
-		return getNursesSortedByFit(MockPatients, MockNurses, weights);
-	}),
-
-	create: protectedProcedure
+	read: protectedProcedure
 		.input(
 			z.object({
 				nightWeight: z.number().min(0).max(5),
 				weekendWeight: z.number().min(0).max(5),
 				distanceWeight: z.number().min(0).max(5),
+				algorithmType: z.nativeEnum(AlgorithmType),
 			}),
 		)
-		.mutation(({ input }) => {
-			weights = input;
-			return weights;
+		.query(async ({ ctx, input }) => {
+			const weights = {
+				nightWeight: input.nightWeight,
+				weekendWeight: input.weekendWeight,
+				distanceWeight: input.distanceWeight,
+			};
+
+			return getNursesSortedByFit(
+				MockPatients,
+				MockNurses,
+				weights,
+				input.algorithmType,
+			);
 		}),
 });
