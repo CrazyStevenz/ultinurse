@@ -1,8 +1,25 @@
 import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
 import { patients, shifts } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 
 export const shiftRouter = createTRPCRouter({
+	create: protectedProcedure
+		.input(
+			z.object({
+				patientId: z.number(),
+				startsAt: z.date(),
+				endsAt: z.date(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			await ctx.db.insert(shifts).values({
+				patientId: input.patientId,
+				startsAt: input.startsAt,
+				endsAt: input.endsAt,
+			});
+		}),
+
 	read: protectedProcedure.query(async ({ ctx }) => {
 		const results = await ctx.db
 			.select()

@@ -33,31 +33,30 @@ const buttonVariants = cva(
 	},
 );
 
-export interface ButtonProps
-	extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-		VariantProps<typeof buttonVariants> {
-	asChild?: boolean;
-	rounded?: boolean;
-}
+function Button({
+	className,
+	variant,
+	size,
+	asChild = false,
+	rounded = false,
+	...props
+}: React.ComponentProps<"button"> &
+	VariantProps<typeof buttonVariants> & {
+		asChild?: boolean;
+		rounded?: boolean;
+	}) {
+	const Comp = asChild ? Slot : "button";
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-	(
-		{ className, variant, size, asChild = false, rounded = false, ...props },
-		ref,
-	) => {
-		const Comp = asChild ? Slot : "button";
-		return (
-			<Comp
-				className={cn(
-					buttonVariants({ variant, size, className }),
-					rounded ? "rounded-full" : "rounded-md",
-				)}
-				ref={ref}
-				{...props}
-			/>
-		);
-	},
-);
-Button.displayName = "Button";
+	return (
+		<Comp
+			data-slot="button"
+			className={cn(
+				buttonVariants({ variant, size, className }),
+				rounded ? "rounded-full" : "rounded-md",
+			)}
+			{...props}
+		/>
+	);
+}
 
 export { Button, buttonVariants };
