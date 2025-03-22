@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import type { LatLng } from "leaflet";
+import dynamic from "next/dynamic";
 
-import { api } from "@/trpc/react";
+import { api } from "../../../trpc/react.tsx";
 import {
 	Dialog,
 	DialogContent,
@@ -11,13 +13,13 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from "@/app/_components/ui/dialog";
-import { Button } from "@/app/_components/ui/button";
-import type { LatLng } from "leaflet";
-import dynamic from "next/dynamic";
+} from "../../_components/ui/dialog.tsx";
+import { Button } from "../../_components/ui/button.tsx";
 
 // Leaflet needs access to "window", so we disable SSR for it
-const Map = dynamic(() => import("@/app/_components/map"), { ssr: false });
+const Map = dynamic(() => import("../../../app/_components/map.tsx"), {
+	ssr: false,
+});
 
 export function CreatePatient() {
 	const [open, setOpen] = useState(false);

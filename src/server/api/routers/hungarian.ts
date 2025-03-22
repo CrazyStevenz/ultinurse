@@ -1,8 +1,6 @@
-import { number, z } from "zod";
+import { z } from "zod";
 
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { patients } from "@/server/db/schema";
-import { caregivers } from "@/server/db/schema";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 const distanceA = 5;
 const distanceB = 15;

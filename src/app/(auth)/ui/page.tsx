@@ -1,4 +1,4 @@
-import { Button } from "@/app/_components/ui/button";
+import { Button } from "../../_components/ui/button.tsx";
 
 export default async function UIKit() {
 	return (

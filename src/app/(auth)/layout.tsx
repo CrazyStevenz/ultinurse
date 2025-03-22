@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
-import { auth } from "@/server/auth";
+import { auth } from "../../server/auth/index.ts";
 
 export default async function AuthenticatedLayout({
 	children,

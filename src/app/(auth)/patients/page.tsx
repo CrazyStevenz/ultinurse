@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
-import { CreatePatient } from "@/app/(auth)/patients/create-patient";
-import PatientData from "@/app/(auth)/patients/patient-data";
-import { api, HydrateClient } from "@/trpc/server";
+import { CreatePatient } from "./create-patient.tsx";
+import PatientData from "./patient-data.tsx";
+import { api, HydrateClient } from "../../../trpc/server.ts";
 
 export const metadata: Metadata = {
 	title: "Patients - OptiNurse",

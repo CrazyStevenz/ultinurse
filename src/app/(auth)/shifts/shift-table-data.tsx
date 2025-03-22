@@ -1,6 +1,6 @@
 "use client";
 
-import { api } from "@/trpc/react";
+import { api } from "../../../trpc/react.tsx";
 
 export default function ShiftsTableData() {
 	const { data, isLoading } = api.shift.read.useQuery();

@@ -1,7 +1,8 @@
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { patients, shifts } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+
+import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
+import { patients, shifts } from "../../db/schema.ts";
 
 export const shiftRouter = createTRPCRouter({
 	create: protectedProcedure

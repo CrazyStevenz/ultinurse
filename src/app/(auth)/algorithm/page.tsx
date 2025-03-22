@@ -1,31 +1,8 @@
 "use client";
-import { api } from "@/trpc/react";
+
 import { useState } from "react";
-import NursesPanel from "./nursesPanel";
 
-type MockPatient = {
-	name: string;
-	needs: string[];
-	needsNight: boolean;
-	needsWeekend: boolean;
-};
-
-type AlgorithmType = "MCDM" | "GREEDY";
-
-// interface NurseData {
-// 	name: string;
-// 	percentage: number;
-// 	distance: number;
-// 	meetsAllNeeds: boolean;
-// 	outOfBounds: boolean;
-// }
-
-// interface WeightsInput {
-// 	nightWeight: number;
-// 	weekendWeight: number;
-// 	distanceWeight: number;
-// 	algorithmType: AlgorithmType;
-// }
+import { api } from "../../../trpc/react.tsx";
 
 export default function Patients() {
 	const distanceA = 5;

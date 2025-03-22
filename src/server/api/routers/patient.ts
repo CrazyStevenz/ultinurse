@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
-import { patients } from "@/server/db/schema";
+import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
+import { patients } from "../../db/schema.ts";
 
 export const patientRouter = createTRPCRouter({
 	create: protectedProcedure

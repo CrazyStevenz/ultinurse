@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { api } from "@/trpc/react";
+import { api } from "../../../trpc/react.tsx";
 import {
 	Dialog,
 	DialogContent,
@@ -11,9 +11,9 @@ import {
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
-} from "@/app/_components/ui/dialog";
-import { Button } from "@/app/_components/ui/button";
-import { TimePickerInput } from "@/app/_components/ui/time-picker-input";
+} from "../../_components/ui/dialog.tsx";
+import { Button } from "../../_components/ui/button.tsx";
+import { TimePickerInput } from "../../_components/ui/time-picker-input.tsx";
 
 export function CreateShift() {
 	const [open, setOpen] = useState(false);

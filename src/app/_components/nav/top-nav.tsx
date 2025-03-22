@@ -1,9 +1,9 @@
 import Link from "next/link";
-
-import Navigation from "@/app/_components/nav/top-nav-links";
-import { auth } from "@/server/auth";
-import { api } from "@/trpc/server";
 import { LogIn, LogOut } from "lucide-react";
+
+import Navigation from "./top-nav-links.tsx";
+import { auth } from "../../../server/auth/index.ts";
+import { api } from "../../../trpc/server.ts";
 
 export default async function TopNav() {
 	const session = await auth();
