@@ -34,7 +34,7 @@ export default function PatientData() {
 									<div className="float-right h-2 w-32 rounded bg-gray-200"></div>
 								</td>
 							</tr>
-						) : (
+						) : data.length ? (
 							data.map((patient) => (
 								<tr
 									key={patient.id}
@@ -47,6 +47,13 @@ export default function PatientData() {
 									</td>
 								</tr>
 							))
+						) : (
+							<tr>
+								<td colSpan={3} className="p-4 text-center align-middle italic">
+									No patients yet. When created, they will show up on the map
+									below.
+								</td>
+							</tr>
 						)}
 					</tbody>
 				</table>
