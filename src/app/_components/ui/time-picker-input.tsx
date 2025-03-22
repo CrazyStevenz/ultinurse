@@ -6,15 +6,15 @@ import React, {
 	type SetStateAction,
 } from "react";
 
-import { Input } from "@/app/_components/ui/input";
-import { cn } from "@/app/_components/lib/utils";
+import { Input } from "./input.tsx";
+import { cn } from "../lib/utils.ts";
 import {
 	getArrowByType,
 	getDateByType,
 	type Period,
 	setDateByType,
 	type TimePickerType,
-} from "./time-picker-utils";
+} from "./time-picker-utils.tsx";
 
 export interface TimePickerInputProps
 	extends InputHTMLAttributes<HTMLInputElement> {

@@ -1,6 +1,6 @@
-import { LatestCaregiver } from "@/app/_components/caregiver";
-import { auth } from "@/server/auth";
-import { api, HydrateClient } from "@/trpc/server";
+import { LatestCaregiver } from "./_components/caregiver.tsx";
+import { auth } from "../server/auth/index.ts";
+import { api, HydrateClient } from "../trpc/server.ts";
 
 export default async function Home() {
 	const session = await auth();

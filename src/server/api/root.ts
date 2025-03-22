@@ -1,8 +1,8 @@
-import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
-import { caregiverRouter } from "@/server/api/routers/caregiver";
-import { patientRouter } from "@/server/api/routers/patient";
-import { shiftRouter } from "@/server/api/routers/shift";
-import { hungarianRouter } from "./routers/hungarian";
+import { createCallerFactory, createTRPCRouter } from "./trpc.ts";
+import { caregiverRouter } from "./routers/caregiver.ts";
+import { patientRouter } from "./routers/patient.ts";
+import { shiftRouter } from "./routers/shift.ts";
+import { hungarianRouter } from "./routers/hungarian.ts";
 
 /**
  * This is the primary router for your server.

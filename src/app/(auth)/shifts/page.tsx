@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
-import ShiftsTableData from "@/app/(auth)/shifts/shift-table-data";
-import { CreateShift } from "@/app/(auth)/shifts/create-shift";
-import { api, HydrateClient } from "@/trpc/server";
+import ShiftsTableData from "./shift-table-data.tsx";
+import { CreateShift } from "./create-shift.tsx";
+import { api, HydrateClient } from "../../../trpc/server.ts";
 
 export const metadata: Metadata = {
 	title: "Shifts - OptiNurse",

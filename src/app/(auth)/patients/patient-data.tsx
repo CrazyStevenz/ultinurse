@@ -2,10 +2,12 @@
 
 import dynamic from "next/dynamic";
 
-import { api } from "@/trpc/react";
+import { api } from "../../../trpc/react.tsx";
 
 // Leaflet needs access to "window", so we disable SSR for it
-const Map = dynamic(() => import("@/app/_components/map"), { ssr: false });
+const Map = dynamic(() => import("../../../app/_components/map.tsx"), {
+	ssr: false,
+});
 
 export default function PatientData() {
 	const { data, isLoading } = api.patient.read.useQuery();

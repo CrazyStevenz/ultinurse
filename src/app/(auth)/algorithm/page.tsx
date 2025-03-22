@@ -1,7 +1,8 @@
 "use client";
 
-import { api } from "@/trpc/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+
+import { api } from "../../../trpc/react.tsx";
 
 export default function Patients() {
 	const distanceA = 5;
