@@ -23,7 +23,7 @@ export default async function Shifts() {
 							<thead>
 								<tr className="border-b border-white/20">
 									<th className="w-16 p-4 py-3">ID</th>
-									<th className="w-auto min-w-24 px-2">Patient</th>
+									<th>Patient</th>
 									<th className="px-2 text-right">Night</th>
 									<th className="w-44 min-w-44 px-2 text-right">Starts At</th>
 									<th className="w-44 min-w-44 p-4 text-right">Ends At</th>
