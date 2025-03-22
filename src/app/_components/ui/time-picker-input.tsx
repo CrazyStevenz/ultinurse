@@ -1,3 +1,5 @@
+// Component from https://time.openstatus.dev
+
 import React, {
 	type Dispatch,
 	type InputHTMLAttributes,
