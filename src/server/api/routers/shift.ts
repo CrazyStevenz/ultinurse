@@ -28,7 +28,11 @@ export const shiftRouter = createTRPCRouter({
 // endAt are less than 24 hours apart.
 function isNightShift(startAt: Date, endAt: Date) {
 	// If endAt hour is smaller than startAt, it includes midnight, so night shift
-	if (startAt.getHours() > endAt.getHours()) {
+	if (
+		startAt.getHours() > endAt.getHours() ||
+		(startAt.getHours() === endAt.getHours() &&
+			startAt.getMinutes() > endAt.getMinutes())
+	) {
 		return true;
 	}
 
