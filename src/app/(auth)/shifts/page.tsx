@@ -15,7 +15,8 @@ export default async function Shifts() {
 		<HydrateClient>
 			<div className="flex flex-col items-center">
 				<div className="container">
-					<div className="py-4 text-right">
+					<div className="flex justify-between py-4">
+						<span className="text-4xl font-semibold">Shifts</span>
 						<CreateShift />
 					</div>
 					<div className="flex flex-col overflow-x-auto rounded-xl border border-white/25">
