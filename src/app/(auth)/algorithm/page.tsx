@@ -95,7 +95,7 @@ export default function Patients() {
 								e.target.value as AlgorithmType,
 							)
 						}
-						className="h-10 w-full rounded-md bg-neutral-900 px-4 py-2 text-neutral-50"
+						className="h-10 w-full rounded-md bg-neutral-900 px-4 py-2 text-neutral-50 ring-offset-white transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:ring-offset-neutral-950 dark:hover:bg-neutral-50/90 dark:focus-visible:ring-neutral-300 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 					>
 						<option value="MCDM">MCDM Algorithm</option>
 						<option value="GREEDY">Greedy Algorithm</option>
@@ -103,7 +103,7 @@ export default function Patients() {
 				</div>
 			</div>
 
-			{/* Filter Options */}
+			{/* Filter Options
 			<div className="mb-6">
 				<h2 className="mb-4 text-xl font-semibold">Filter Nurses</h2>
 				<div className="mb-4">
@@ -132,7 +132,7 @@ export default function Patients() {
 					/>
 					<label className="ml-2">Show out of bounds nurses</label>
 				</div>
-			</div>
+			</div> */}
 
 			<NursesPanel
 				nightWeight={nightWeight}
