@@ -36,7 +36,6 @@ export default function Patients() {
 	return (
 		<div className="flex flex-col items-center">
 			<h1 className="mb-4 text-2xl font-bold">Nurse Fit Rankings</h1>
-
 			{/* Weights Adjustment */}
 			<div className="mb-6 w-1/2">
 				<h2 className="mb-4 text-xl font-semibold">Adjust Weights</h2>
@@ -102,8 +101,7 @@ export default function Patients() {
 					</select>
 				</div>
 			</div>
-
-			{/* Filter Options
+			Filter Options
 			<div className="mb-6">
 				<h2 className="mb-4 text-xl font-semibold">Filter Nurses</h2>
 				<div className="mb-4">
@@ -132,8 +130,7 @@ export default function Patients() {
 					/>
 					<label className="ml-2">Show out of bounds nurses</label>
 				</div>
-			</div> */}
-
+			</div>
 			<NursesPanel
 				nightWeight={nightWeight}
 				weekendWeight={weekendWeight}
