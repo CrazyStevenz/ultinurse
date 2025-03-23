@@ -1,66 +1,61 @@
 "use client";
-import React from "react";
+import { api } from "../../../trpc/react";
 
-interface Nurse {
-	name: string;
-	percentage: number;
-	distance: number;
-	meetsAllNeeds: boolean;
-	outOfBounds: boolean;
-	optimalDistance: boolean;
-	nightShiftEligible: boolean;
-	weekendShiftEligible: boolean;
-}
+type AlgorithmType = "MCDM" | "GREEDY";
 
-interface NurseListProps {
-	nurses: Nurse[];
-	patientName: string;
-	isLoading: boolean;
-	error: any;
+interface NursesPanelProps {
+	nightWeight: number;
+	weekendWeight: number;
+	distanceWeight: number;
+	algorithmType: AlgorithmType;
 	showMeetsAllNeeds: boolean;
 	showPartiallyMeetsNeeds: boolean;
 	showOutOfBounds: boolean;
 }
 
 export default function NursesPanel({
-	nurses,
-	patientName,
-	isLoading,
-	error,
+	nightWeight,
+	weekendWeight,
+	distanceWeight,
+	algorithmType,
 	showMeetsAllNeeds,
 	showPartiallyMeetsNeeds,
 	showOutOfBounds,
-}: NurseListProps) {
+}: NursesPanelProps) {
+	// Fetch nurses data using the API
+	const {
+		data: nursesData,
+		isLoading,
+		error,
+	} = api.algorithm.read.useQuery({
+		nightWeight,
+		weekendWeight,
+		distanceWeight,
+		algorithmType,
+	});
+
 	if (isLoading) {
-		return <p className="text-center text-blue-500">Loading nurses...</p>;
+		return <p>Loading nurses...</p>;
 	}
 
 	if (error) {
-		return (
-			<p className="text-center text-red-500">
-				Error loading nurses: {error.message}
-			</p>
-		);
+		return <p>Error loading nurses: {error.message}</p>;
 	}
 
-	// Filter nurses based on selected options
-	const filteredNurses = nurses.filter((nurse) => {
-		if (nurse.outOfBounds && !showOutOfBounds) return false;
-		if (nurse.meetsAllNeeds && !nurse.outOfBounds && !showMeetsAllNeeds)
-			return false;
-		if (!nurse.meetsAllNeeds && !nurse.outOfBounds && !showPartiallyMeetsNeeds)
-			return false;
-		return true;
-	});
-
-	if (filteredNurses.length === 0) {
-		return (
-			<p className="text-center text-red-500">
-				No nurses available to meet patient {patientName}&apos;s needs within
-				the selected categories.
-			</p>
-		);
-	}
+	// Apply filtering
+	const filteredNurses =
+		nursesData?.filter((nurse) => {
+			if (nurse.outOfBounds && !showOutOfBounds) return false;
+			if (nurse.meetsAllNeeds && !nurse.outOfBounds && !showMeetsAllNeeds)
+				return false;
+			if (
+				!nurse.meetsAllNeeds &&
+				!nurse.outOfBounds &&
+				!showPartiallyMeetsNeeds
+			)
+				return false;
+			return true;
+		}) ?? [];
 
 	return (
 		<div className="mb-4 flex w-full justify-center">

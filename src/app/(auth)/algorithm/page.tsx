@@ -1,42 +1,10 @@
 "use client";
-import { api } from "../../../trpc/react";
 import { useState } from "react";
 import NursesPanel from "./nursesPanel";
 
-type MockPatient = {
-	name: string;
-	needs: string[];
-	needsNight: boolean;
-	needsWeekend: boolean;
-};
-
 type AlgorithmType = "MCDM" | "GREEDY";
 
-// interface NurseData {
-// 	name: string;
-// 	percentage: number;
-// 	distance: number;
-// 	meetsAllNeeds: boolean;
-// 	outOfBounds: boolean;
-// }
-
-// interface WeightsInput {
-// 	nightWeight: number;
-// 	weekendWeight: number;
-// 	distanceWeight: number;
-// 	algorithmType: AlgorithmType;
-// }
-
 export default function Patients() {
-	const distanceA = 5;
-	const distanceB = 15;
-	const patient: MockPatient = {
-		name: "P1",
-		needs: ["A"],
-		needsNight: false,
-		needsWeekend: true,
-	};
-
 	const [nightWeight, setNightWeight] = useState(1);
 	const [weekendWeight, setWeekendWeight] = useState(1);
 	const [distanceWeight, setDistanceWeight] = useState(1);
@@ -44,17 +12,6 @@ export default function Patients() {
 	const [showMeetsAllNeeds, setShowMeetsAllNeeds] = useState(true);
 	const [showPartiallyMeetsNeeds, setShowPartiallyMeetsNeeds] = useState(true);
 	const [showOutOfBounds, setShowOutOfBounds] = useState(true);
-
-	const {
-		data: nursesData,
-		isLoading,
-		error,
-	} = api.algorithm.read.useQuery({
-		nightWeight,
-		weekendWeight,
-		distanceWeight,
-		algorithmType,
-	});
 
 	const handleWeightChange = (
 		type: "night" | "weekend" | "distance" | "algorithmType",
@@ -79,13 +36,6 @@ export default function Patients() {
 	return (
 		<div className="flex flex-col items-center">
 			<h1 className="mb-4 text-2xl font-bold">Nurse Fit Rankings</h1>
-			<p className="mb-6">
-				Matching nurses for patient <strong>{patient.name}</strong> with needs:{" "}
-				{patient.needs.join(", ")}. Distance thresholds:{" "}
-				<strong>{distanceA}</strong> and <strong>{distanceB}</strong>.
-			</p>
-
-			{/* Weights Adjustment */}
 
 			{/* Weights Adjustment */}
 			<div className="mb-6 w-1/2">
@@ -145,7 +95,7 @@ export default function Patients() {
 								e.target.value as AlgorithmType,
 							)
 						}
-						className="h-10 w-full rounded-md bg-neutral-900 px-4 py-2 text-neutral-50 ring-offset-white transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:ring-offset-neutral-950 dark:hover:bg-neutral-50/90 dark:focus-visible:ring-neutral-300 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
+						className="h-10 w-full rounded-md bg-neutral-900 px-4 py-2 text-neutral-50"
 					>
 						<option value="MCDM">MCDM Algorithm</option>
 						<option value="GREEDY">Greedy Algorithm</option>
@@ -153,6 +103,7 @@ export default function Patients() {
 				</div>
 			</div>
 
+			{/* Filter Options */}
 			<div className="mb-6">
 				<h2 className="mb-4 text-xl font-semibold">Filter Nurses</h2>
 				<div className="mb-4">
@@ -184,10 +135,10 @@ export default function Patients() {
 			</div>
 
 			<NursesPanel
-				nurses={nursesData ?? []}
-				patientName={patient.name}
-				isLoading={isLoading}
-				error={error}
+				nightWeight={nightWeight}
+				weekendWeight={weekendWeight}
+				distanceWeight={distanceWeight}
+				algorithmType={algorithmType}
 				showMeetsAllNeeds={showMeetsAllNeeds}
 				showPartiallyMeetsNeeds={showPartiallyMeetsNeeds}
 				showOutOfBounds={showOutOfBounds}
