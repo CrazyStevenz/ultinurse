@@ -1,5 +1,5 @@
 "use client";
-import { api } from "@/trpc/react";
+import { api } from "../../../trpc/react";
 import { useState } from "react";
 import NursesPanel from "./nursesPanel";
 
@@ -102,9 +102,6 @@ export default function Patients() {
 						onChange={(e) =>
 							handleWeightChange("night", Number(e.target.value))
 						}
-						onChange={(e) =>
-							handleWeightChange("night", Number(e.target.value))
-						}
 						className="w-full"
 					/>
 				</div>
@@ -120,9 +117,6 @@ export default function Patients() {
 						onChange={(e) =>
 							handleWeightChange("weekend", Number(e.target.value))
 						}
-						onChange={(e) =>
-							handleWeightChange("weekend", Number(e.target.value))
-						}
 						className="w-full"
 					/>
 				</div>
@@ -135,9 +129,6 @@ export default function Patients() {
 						min="0"
 						max="5"
 						value={distanceWeight}
-						onChange={(e) =>
-							handleWeightChange("distance", Number(e.target.value))
-						}
 						onChange={(e) =>
 							handleWeightChange("distance", Number(e.target.value))
 						}
@@ -162,22 +153,12 @@ export default function Patients() {
 				</div>
 			</div>
 
-			{/* Checkboxes to filter nurses */}
-
-			{/* Checkboxes to filter nurses */}
 			<div className="mb-6">
-				<h2 className="mb-4 text-xl font-semibold">Filter Nurses</h2>
-				<div className="mb-4">
 				<h2 className="mb-4 text-xl font-semibold">Filter Nurses</h2>
 				<div className="mb-4">
 					<input
 						type="checkbox"
 						checked={showMeetsAllNeeds}
-						onChange={() => setShowMeetsAllNeeds(!showMeetsAllNeeds)}
-					/>
-					<label className="ml-2">Show nurses that meet all needs</label>
-				</div>
-				<div className="mb-4">
 						onChange={() => setShowMeetsAllNeeds(!showMeetsAllNeeds)}
 					/>
 					<label className="ml-2">Show nurses that meet all needs</label>
@@ -189,13 +170,7 @@ export default function Patients() {
 						onChange={() =>
 							setShowPartiallyMeetsNeeds(!showPartiallyMeetsNeeds)
 						}
-						onChange={() =>
-							setShowPartiallyMeetsNeeds(!showPartiallyMeetsNeeds)
-						}
 					/>
-					<label className="ml-2">Show nurses that partially meet needs</label>
-				</div>
-				<div className="mb-4">
 					<label className="ml-2">Show nurses that partially meet needs</label>
 				</div>
 				<div className="mb-4">
