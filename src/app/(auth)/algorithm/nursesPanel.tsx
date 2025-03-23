@@ -4,7 +4,7 @@ import { api } from "../../../trpc/react.tsx";
 
 type AlgorithmType = "MCDM" | "GREEDY";
 
-interface NursesPanelProps {
+type NursesPanelProps = {
 	nightWeight: number;
 	weekendWeight: number;
 	distanceWeight: number;
@@ -12,7 +12,7 @@ interface NursesPanelProps {
 	showMeetsAllNeeds: boolean;
 	showPartiallyMeetsNeeds: boolean;
 	showOutOfBounds: boolean;
-}
+};
 
 export default function NursesPanel({
 	nightWeight,

@@ -3,8 +3,8 @@ import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 // import { patients } from "@/server/db/schema";  // Commented out database schemas
 // import { caregivers } from "@/server/db/schema"; // Commented out database schemas
 
-const distanceA = 5;
-const distanceB = 15;
+const DISTANCE_A = 5;
+const DISTANCE_B = 15;
 
 type Weights = {
 	nightWeight: number;
@@ -27,14 +27,14 @@ type MockPatient = {
 	needsWeekend: boolean;
 };
 
-const MockPatients: MockPatient = {
+const MOCK_PATIENT: MockPatient = {
 	name: "P1",
 	needs: ["A"],
 	needsNight: false,
 	needsWeekend: true,
 };
 
-const MockNurses: MockNurses[] = [
+const MOCK_NURSES: MockNurses[] = [
 	{
 		name: "N1",
 		competencies: ["A", "C", "E"],
@@ -190,7 +190,7 @@ function rankNursesGreedy(
 		)
 		.map((nurse) => {
 			const outOfBounds = nurse.distance > distanceB;
-			const optimalDistance = nurse.distance < distanceA;
+			const optimalDistance = nurse.distance < DISTANCE_A;
 			const nightShiftEligible = !nurse.prefersDays;
 			const weekendShiftEligible = !nurse.prefersWeekdays;
 
@@ -233,9 +233,9 @@ function getNursesSortedByFit(
 
 	switch (algorithmType) {
 		case "MCDM":
-			return rankNursesMCDM(nurses, patient, weights, distanceA, distanceB);
+			return rankNursesMCDM(nurses, patient, weights, DISTANCE_A, DISTANCE_B);
 		case "GREEDY":
-			return rankNursesGreedy(nurses, patient, distanceB);
+			return rankNursesGreedy(nurses, patient, DISTANCE_B);
 	}
 }
 
@@ -257,8 +257,8 @@ export const algorithmRouter = createTRPCRouter({
 			};
 
 			return getNursesSortedByFit(
-				MockPatients,
-				MockNurses,
+				MOCK_PATIENT,
+				MOCK_NURSES,
 				weights,
 				input.algorithmType,
 			);
