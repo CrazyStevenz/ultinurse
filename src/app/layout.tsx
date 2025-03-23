@@ -1,12 +1,12 @@
-import "@/styles/globals.css";
+import "../styles/globals.css";
 
 import { Geist } from "next/font/google";
 import { type ReactNode } from "react";
 import { type Metadata } from "next";
 
-import { TRPCReactProvider } from "@/trpc/react";
-import TopNav from "@/app/_components/nav/top-nav";
-import BottomNav from "@/app/_components/nav/bottom-nav";
+import { TRPCReactProvider } from "../trpc/react.tsx";
+import TopNav from "./_components/nav/top-nav";
+import BottomNav from "./_components/nav/bottom-nav.tsx";
 
 const geist = Geist({ subsets: ["latin"] });
 

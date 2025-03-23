@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { api } from "@/trpc/react";
+import { api } from "../../trpc/react.tsx";
 
 export function LatestCaregiver() {
 	const [latestCaregiver] = api.caregiver.getLatest.useSuspenseQuery();
