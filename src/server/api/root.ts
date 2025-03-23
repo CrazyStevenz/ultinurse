@@ -3,6 +3,7 @@ import { caregiverRouter } from "./routers/caregiver.ts";
 import { patientRouter } from "./routers/patient.ts";
 import { shiftRouter } from "./routers/shift.ts";
 import { hungarianRouter } from "./routers/hungarian.ts";
+import { algorithmRouter } from "./routers/algorithm";
 
 /**
  * This is the primary router for your server.
@@ -13,7 +14,7 @@ export const appRouter = createTRPCRouter({
 	caregiver: caregiverRouter,
 	patient: patientRouter,
 	shift: shiftRouter,
-	hungarian: hungarianRouter,
+	algorithm: algorithmRouter,
 });
 
 // export type definition of API
