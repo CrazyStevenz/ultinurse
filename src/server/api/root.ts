@@ -2,7 +2,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { caregiverRouter } from "@/server/api/routers/caregiver";
 import { patientRouter } from "@/server/api/routers/patient";
 import { shiftRouter } from "@/server/api/routers/shift";
-import { hungarianRouter } from "./routers/hungarian";
+import { algorithmRouter } from "./routers/algorithm";
 
 /**
  * This is the primary router for your server.
@@ -13,7 +13,7 @@ export const appRouter = createTRPCRouter({
 	caregiver: caregiverRouter,
 	patient: patientRouter,
 	shift: shiftRouter,
-	hungarian: hungarianRouter,
+	algorithm: algorithmRouter,
 });
 
 // export type definition of API

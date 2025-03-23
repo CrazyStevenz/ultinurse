@@ -6,9 +6,11 @@ import NursesPanel from "./nursesPanel";
 type MockPatient = {
 	name: string;
 	needs: string[];
+	needsNight: boolean;
+	needsWeekend: boolean;
 };
 
-type AlgorithmType = "HUNGARIAN" | "GREEDY";
+type AlgorithmType = "MCDM" | "GREEDY";
 
 // interface NurseData {
 // 	name: string;
@@ -30,14 +32,15 @@ export default function Patients() {
 	const distanceB = 15;
 	const patient: MockPatient = {
 		name: "P1",
-		needs: ["A", "C", "B"],
+		needs: ["A"],
+		needsNight: false,
+		needsWeekend: true,
 	};
 
 	const [nightWeight, setNightWeight] = useState(1);
 	const [weekendWeight, setWeekendWeight] = useState(1);
 	const [distanceWeight, setDistanceWeight] = useState(1);
-	const [algorithmType, setAlgorithmType] =
-		useState<AlgorithmType>("HUNGARIAN");
+	const [algorithmType, setAlgorithmType] = useState<AlgorithmType>("MCDM");
 	const [showMeetsAllNeeds, setShowMeetsAllNeeds] = useState(true);
 	const [showPartiallyMeetsNeeds, setShowPartiallyMeetsNeeds] = useState(true);
 	const [showOutOfBounds, setShowOutOfBounds] = useState(true);
@@ -46,7 +49,7 @@ export default function Patients() {
 		data: nursesData,
 		isLoading,
 		error,
-	} = api.hungarian.read.useQuery({
+	} = api.algorithm.read.useQuery({
 		nightWeight,
 		weekendWeight,
 		distanceWeight,
@@ -72,28 +75,6 @@ export default function Patients() {
 				break;
 		}
 	};
-
-	const filteredNurses =
-		nursesData?.filter((nurse) => {
-			if (nurse.outOfBounds && !showOutOfBounds) return false;
-			if (nurse.meetsAllNeeds && !nurse.outOfBounds && !showMeetsAllNeeds)
-				return false;
-			if (
-				!nurse.meetsAllNeeds &&
-				!nurse.outOfBounds &&
-				!showPartiallyMeetsNeeds
-			)
-				return false;
-			return true;
-		}) ?? [];
-
-	if (isLoading) {
-		return <p>Loading nurses...</p>;
-	}
-
-	if (error) {
-		return <p>Error loading nurses: {error.message}</p>;
-	}
 
 	return (
 		<div className="flex flex-col items-center">
@@ -162,9 +143,9 @@ export default function Patients() {
 								e.target.value as AlgorithmType,
 							)
 						}
-						className="w-full rounded border p-2"
+						className="h-10 w-full rounded-md bg-neutral-900 px-4 py-2 text-neutral-50 ring-offset-white transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:ring-offset-neutral-950 dark:hover:bg-neutral-50/90 dark:focus-visible:ring-neutral-300 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 					>
-						<option value="HUNGARIAN">Hungarian Algorithm</option>
+						<option value="MCDM">MCDM Algorithm</option>
 						<option value="GREEDY">Greedy Algorithm</option>
 					</select>
 				</div>
@@ -201,46 +182,15 @@ export default function Patients() {
 				</div>
 			</div>
 
-			{/* Display nurses */}
-			{filteredNurses.length === 0 ? (
-				<p className="text-center text-red-500">
-					No nurses available to meet patient {patient.name}&apos;s needs within
-					the selected categories.
-				</p>
-			) : (
-				<div className="mb-4 flex w-full justify-center">
-					<ul className="w-full md:w-1/2">
-						{filteredNurses.map((nurse, index) => (
-							<li
-								key={nurse.name}
-								className={`flex flex-col py-4 first:rounded-t-sm last:rounded-b-sm ${
-									nurse.outOfBounds
-										? "bg-gray-700 text-gray-400"
-										: nurse.meetsAllNeeds
-											? "bg-green-200 text-black"
-											: "bg-yellow-100 text-black"
-								}`}
-							>
-								<div className="flex justify-between px-4">
-									<span>
-										{index + 1}. {nurse.name}
-									</span>
-									<span>{nurse.percentage.toFixed(1)}%</span>
-								</div>
-								<div className="flex justify-between px-4">
-									<span>Distance: {nurse.distance}</span>
-									<span>
-										{nurse.meetsAllNeeds
-											? "Meets all needs"
-											: "Partially meets needs"}
-									</span>
-								</div>
-							</li>
-						))}
-					</ul>
-				</div>
-			)}
-			<NursesPanel nurses={filteredNurses} patientName={patient.name} />
+			<NursesPanel
+				nurses={nursesData ?? []}
+				patientName={patient.name}
+				isLoading={isLoading}
+				error={error}
+				showMeetsAllNeeds={showMeetsAllNeeds}
+				showPartiallyMeetsNeeds={showPartiallyMeetsNeeds}
+				showOutOfBounds={showOutOfBounds}
+			/>
 		</div>
 	);
 }

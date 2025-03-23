@@ -7,15 +7,53 @@ interface Nurse {
 	distance: number;
 	meetsAllNeeds: boolean;
 	outOfBounds: boolean;
+	optimalDistance: boolean;
+	nightShiftEligible: boolean;
+	weekendShiftEligible: boolean;
 }
 
 interface NurseListProps {
 	nurses: Nurse[];
 	patientName: string;
+	isLoading: boolean;
+	error: any;
+	showMeetsAllNeeds: boolean;
+	showPartiallyMeetsNeeds: boolean;
+	showOutOfBounds: boolean;
 }
 
-export default function NursesPanel({ nurses, patientName }: NurseListProps) {
-	if (nurses.length === 0) {
+export default function NursesPanel({
+	nurses,
+	patientName,
+	isLoading,
+	error,
+	showMeetsAllNeeds,
+	showPartiallyMeetsNeeds,
+	showOutOfBounds,
+}: NurseListProps) {
+	if (isLoading) {
+		return <p className="text-center text-blue-500">Loading nurses...</p>;
+	}
+
+	if (error) {
+		return (
+			<p className="text-center text-red-500">
+				Error loading nurses: {error.message}
+			</p>
+		);
+	}
+
+	// Filter nurses based on selected options
+	const filteredNurses = nurses.filter((nurse) => {
+		if (nurse.outOfBounds && !showOutOfBounds) return false;
+		if (nurse.meetsAllNeeds && !nurse.outOfBounds && !showMeetsAllNeeds)
+			return false;
+		if (!nurse.meetsAllNeeds && !nurse.outOfBounds && !showPartiallyMeetsNeeds)
+			return false;
+		return true;
+	});
+
+	if (filteredNurses.length === 0) {
 		return (
 			<p className="text-center text-red-500">
 				No nurses available to meet patient {patientName}&apos;s needs within
@@ -27,13 +65,13 @@ export default function NursesPanel({ nurses, patientName }: NurseListProps) {
 	return (
 		<div className="mb-4 flex w-full justify-center">
 			<ul className="w-full md:w-1/2">
-				{nurses.map((nurse, index) => (
+				{filteredNurses.map((nurse, index) => (
 					<li
 						key={nurse.name}
 						className={`flex flex-col py-4 first:rounded-t-sm last:rounded-b-sm ${
 							nurse.outOfBounds
 								? "bg-gray-700 text-gray-400"
-								: nurse.meetsAllNeeds
+								: nurse.percentage > 90
 									? "bg-green-200 text-black"
 									: "bg-yellow-100 text-black"
 						}`}
@@ -51,6 +89,35 @@ export default function NursesPanel({ nurses, patientName }: NurseListProps) {
 									? "Meets all needs"
 									: "Partially meets needs"}
 							</span>
+						</div>
+						<div className="flex justify-between px-4">
+							<span>
+								{nurse.optimalDistance ? (
+									<span className="text-green-500">✅ Optimal Distance</span>
+								) : nurse.outOfBounds ? (
+									<span className="text-red-500">❌ Out of Bounds</span>
+								) : (
+									<span className="text-yellow-500">
+										⚠️ Acceptable Distance
+									</span>
+								)}
+							</span>
+							<div className="flex">
+								<span className="mr-2">
+									{nurse.nightShiftEligible ? (
+										<span className="text-green-500">✅ Night Shift</span>
+									) : (
+										<span className="text-red-500">❌ Night Shift</span>
+									)}
+								</span>
+								<span>
+									{nurse.weekendShiftEligible ? (
+										<span className="text-green-500">✅ Weekend Shift</span>
+									) : (
+										<span className="text-red-500">❌ Weekend Shift</span>
+									)}
+								</span>
+							</div>
 						</div>
 					</li>
 				))}
