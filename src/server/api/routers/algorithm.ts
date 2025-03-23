@@ -1,5 +1,5 @@
 import { number, z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "@/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 // import { patients } from "@/server/db/schema";  // Commented out database schemas
 // import { caregivers } from "@/server/db/schema"; // Commented out database schemas
 
