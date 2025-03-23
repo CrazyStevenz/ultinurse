@@ -203,44 +203,67 @@ function rankNursesMCDM(
 		.sort((a, b) => b.percentage - a.percentage);
 }
 
-// Greedy Algorithm (Sort by Distance & Competency)
+// Greedy Algorithm
 function rankNursesGreedy(
 	nurses: MockNurses[],
 	patient: MockPatient,
+	weights: Weights,
 	distanceB: number,
 ): NurseData[] {
-	const nurseScores = nurses
-		.filter((nurse) =>
-			nurse.competencies.some((c) => patient.needs.includes(c)),
-		)
-		.map((nurse) => {
-			const outOfBounds = nurse.distance > distanceB;
-			const optimalDistance = nurse.distance < distanceA;
-			const nightShiftEligible = !nurse.prefersDays;
-			const weekendShiftEligible = !nurse.prefersWeekdays;
+	// First, filter out nurses who can't fulfill the competencies
+	const filteredNurses = nurses.filter((nurse) =>
+		nurse.competencies.some((c) => patient.needs.includes(c)),
+	);
 
-			return {
-				name: nurse.name,
-				score: 100 - nurse.distance,
-				distance: nurse.distance,
-				meetsAllNeeds: nurse.competencies.some((c) =>
-					patient.needs.includes(c),
-				),
-				outOfBounds,
-				optimalDistance,
-				nightShiftEligible,
-				weekendShiftEligible,
-			};
-		});
+	// Then, for each nurse, calculate their score based on distance, shift eligibility, and competencies
+	const nurseScores = filteredNurses.map((nurse) => {
+		const outOfBounds = nurse.distance > distanceB;
+		const optimalDistance = nurse.distance < distanceA;
+		const nightShiftEligible = !nurse.prefersDays;
+		const weekendShiftEligible = !nurse.prefersWeekdays;
 
+		let score = 0;
+
+		// Greedy choice 1: distance
+		if (nurse.distance < distanceA) {
+			score += 10; // Prioritize nurses who are within the optimal distance
+		} else if (nurse.distance <= distanceB) {
+			score += 5; // Penalize those farther away but within acceptable range
+		} else {
+			score -= 10; // Penalize those out of bounds
+		}
+
+		// Greedy choice 2: Night shift eligibility
+		if (patient.needsNight && nightShiftEligible) {
+			score += weights.nightWeight * 5;
+		}
+
+		// Greedy choice 3: Weekend shift eligibility
+		if (patient.needsWeekend && weekendShiftEligible) {
+			score += weights.weekendWeight * 5;
+		}
+
+		// Return a structured score with additional data
+		return {
+			name: nurse.name,
+			score,
+			distance: nurse.distance,
+			meetsAllNeeds: nurse.competencies.every((c) => patient.needs.includes(c)),
+			outOfBounds,
+			optimalDistance,
+			nightShiftEligible,
+			weekendShiftEligible,
+		};
+	});
+
+	// Normalize and sort the scores based on the highest score
 	const maxScore = Math.max(...nurseScores.map((nurse) => nurse.score));
-
 	return nurseScores
 		.map((nurse) => ({
 			...nurse,
 			percentage: maxScore > 0 ? (nurse.score / maxScore) * 100 : 0,
 		}))
-		.sort((a, b) => b.percentage - a.percentage);
+		.sort((a, b) => b.percentage - a.percentage); // Sort in descending order of score
 }
 
 //  Handle algorithm type selection
@@ -259,7 +282,7 @@ function getNursesSortedByFit(
 	if (algorithmType === "MCDM") {
 		return rankNursesMCDM(nurses, patient, weights, distanceA, distanceB);
 	} else if (algorithmType === "GREEDY") {
-		return rankNursesGreedy(nurses, patient, distanceB);
+		return rankNursesGreedy(nurses, patient, weights, distanceB);
 	} else {
 		throw new Error(`Unsupported algorithm type`);
 	}
