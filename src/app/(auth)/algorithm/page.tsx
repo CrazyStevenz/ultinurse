@@ -169,5 +169,6 @@ export default function Patients() {
 				showOutOfBounds={showOutOfBounds}
 			/>
 		</div>
+	</div>
 	);
 }
