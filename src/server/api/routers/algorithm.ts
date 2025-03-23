@@ -198,9 +198,9 @@ function rankNursesGreedy(
 			let score = 0;
 
 			// Greedy choice 1: distance
-			if (nurse.distance < distanceA) {
+			if (nurse.distance < DISTANCE_A) {
 				score += 10; // Prioritize nurses who are within the optimal distance
-			} else if (nurse.distance <= distanceB) {
+			} else if (nurse.distance <= DISTANCE_B) {
 				score += 5; // Penalize those farther away but within acceptable range
 			} else {
 				score -= 10; // Penalize those out of bounds
@@ -258,7 +258,7 @@ function getNursesSortedByFit(
 		case "MCDM":
 			return rankNursesMCDM(nurses, patient, weights, DISTANCE_A, DISTANCE_B);
 		case "GREEDY":
-			return rankNursesGreedy(nurses, patient, DISTANCE_B);
+			return rankNursesGreedy(nurses, patient, weights, DISTANCE_B);
 	}
 }
 
