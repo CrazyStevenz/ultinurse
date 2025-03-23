@@ -1,10 +1,10 @@
-import { number, z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../../../server/api/trpc";
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 // import { patients } from "@/server/db/schema";  // Commented out database schemas
 // import { caregivers } from "@/server/db/schema"; // Commented out database schemas
 
-const distanceA = 5;
-const distanceB = 15;
+const DISTANCE_A = 5;
+const DISTANCE_B = 15;
 
 type Weights = {
 	nightWeight: number;
@@ -27,14 +27,14 @@ type MockPatient = {
 	needsWeekend: boolean;
 };
 
-const MockPatients: MockPatient = {
+const MOCK_PATIENT: MockPatient = {
 	name: "P1",
 	needs: ["A"],
 	needsNight: false,
 	needsWeekend: true,
 };
 
-const MockNurses: MockNurses[] = [
+const MOCK_NURSES: MockNurses[] = [
 	{
 		name: "N1",
 		competencies: ["A", "C", "E"],
@@ -128,21 +128,13 @@ function rankNursesMCDM(
 	distanceA: number,
 	distanceB: number,
 ): NurseData[] {
-	function calculateScore(nurse: MockNurses): {
-		score: number;
-		outOfBounds: boolean;
-		optimalDistance: boolean;
-		nightShiftEligible: boolean;
-		weekendShiftEligible: boolean;
-	} {
-		let score = 0;
+	const nurseScores = nurses.map((nurse) => {
 		const matchingCompetencies = nurse.competencies.filter((c) =>
 			patient.needs.includes(c),
 		).length;
-		score += matchingCompetencies * 20;
-
-		let outOfBounds = false;
+		let score = matchingCompetencies * 20;
 		let optimalDistance = false;
+		let outOfBounds = false;
 
 		if (nurse.distance < distanceA) {
 			score += 10;
@@ -164,23 +156,6 @@ function rankNursesMCDM(
 			score += weights.weekendWeight * 5;
 		}
 
-		return {
-			score,
-			outOfBounds,
-			optimalDistance,
-			nightShiftEligible,
-			weekendShiftEligible,
-		};
-	}
-
-	const nurseScores = nurses.map((nurse) => {
-		const {
-			score,
-			outOfBounds,
-			optimalDistance,
-			nightShiftEligible,
-			weekendShiftEligible,
-		} = calculateScore(nurse);
 		return {
 			name: nurse.name,
 			score,
@@ -210,51 +185,51 @@ function rankNursesGreedy(
 	weights: Weights,
 	distanceB: number,
 ): NurseData[] {
-	// First, filter out nurses who can't fulfill the competencies
-	const filteredNurses = nurses.filter((nurse) =>
-		nurse.competencies.some((c) => patient.needs.includes(c)),
-	);
+	const nurseScores = nurses
+		.filter((nurse) =>
+			nurse.competencies.some((c) => patient.needs.includes(c)),
+		)
+		.map((nurse) => {
+			const outOfBounds = nurse.distance > distanceB;
+			const optimalDistance = nurse.distance < DISTANCE_A;
+			const nightShiftEligible = !nurse.prefersDays;
+			const weekendShiftEligible = !nurse.prefersWeekdays;
 
-	// Then, for each nurse, calculate their score based on distance, shift eligibility, and competencies
-	const nurseScores = filteredNurses.map((nurse) => {
-		const outOfBounds = nurse.distance > distanceB;
-		const optimalDistance = nurse.distance < distanceA;
-		const nightShiftEligible = !nurse.prefersDays;
-		const weekendShiftEligible = !nurse.prefersWeekdays;
+			let score = 0;
 
-		let score = 0;
+			// Greedy choice 1: distance
+			if (nurse.distance < distanceA) {
+				score += 10; // Prioritize nurses who are within the optimal distance
+			} else if (nurse.distance <= distanceB) {
+				score += 5; // Penalize those farther away but within acceptable range
+			} else {
+				score -= 10; // Penalize those out of bounds
+			}
 
-		// Greedy choice 1: distance
-		if (nurse.distance < distanceA) {
-			score += 10; // Prioritize nurses who are within the optimal distance
-		} else if (nurse.distance <= distanceB) {
-			score += 5; // Penalize those farther away but within acceptable range
-		} else {
-			score -= 10; // Penalize those out of bounds
-		}
+			// Greedy choice 2: Night shift eligibility
+			if (patient.needsNight && nightShiftEligible) {
+				score += weights.nightWeight * 5;
+			}
 
-		// Greedy choice 2: Night shift eligibility
-		if (patient.needsNight && nightShiftEligible) {
-			score += weights.nightWeight * 5;
-		}
+			// Greedy choice 3: Weekend shift eligibility
+			if (patient.needsWeekend && weekendShiftEligible) {
+				score += weights.weekendWeight * 5;
+			}
 
-		// Greedy choice 3: Weekend shift eligibility
-		if (patient.needsWeekend && weekendShiftEligible) {
-			score += weights.weekendWeight * 5;
-		}
-
-		// Return a structured score with additional data
-		return {
-			name: nurse.name,
-			score,
-			distance: nurse.distance,
-			meetsAllNeeds: nurse.competencies.every((c) => patient.needs.includes(c)),
-			outOfBounds,
-			optimalDistance,
-			nightShiftEligible,
-			weekendShiftEligible,
-		};
-	});
+			// Return a structured score with additional data
+			return {
+				name: nurse.name,
+				score,
+				distance: nurse.distance,
+				meetsAllNeeds: nurse.competencies.every((c) =>
+					patient.needs.includes(c),
+				),
+				outOfBounds,
+				optimalDistance,
+				nightShiftEligible,
+				weekendShiftEligible,
+			};
+		});
 
 	// Normalize and sort the scores based on the highest score
 	const maxScore = Math.max(...nurseScores.map((nurse) => nurse.score));
@@ -266,7 +241,7 @@ function rankNursesGreedy(
 		.sort((a, b) => b.percentage - a.percentage); // Sort in descending order of score
 }
 
-//  Handle algorithm type selection
+// Handle algorithm type selection
 function getNursesSortedByFit(
 	patient: MockPatient,
 	nurses: MockNurses[],
@@ -279,12 +254,11 @@ function getNursesSortedByFit(
 		nurses = nurses.filter((nurse) => nurse.competencies.includes(singleNeed));
 	}
 
-	if (algorithmType === "MCDM") {
-		return rankNursesMCDM(nurses, patient, weights, distanceA, distanceB);
-	} else if (algorithmType === "GREEDY") {
-		return rankNursesGreedy(nurses, patient, weights, distanceB);
-	} else {
-		throw new Error(`Unsupported algorithm type`);
+	switch (algorithmType) {
+		case "MCDM":
+			return rankNursesMCDM(nurses, patient, weights, DISTANCE_A, DISTANCE_B);
+		case "GREEDY":
+			return rankNursesGreedy(nurses, patient, DISTANCE_B);
 	}
 }
 
@@ -306,8 +280,8 @@ export const algorithmRouter = createTRPCRouter({
 			};
 
 			return getNursesSortedByFit(
-				MockPatients,
-				MockNurses,
+				MOCK_PATIENT,
+				MOCK_NURSES,
 				weights,
 				input.algorithmType,
 			);
