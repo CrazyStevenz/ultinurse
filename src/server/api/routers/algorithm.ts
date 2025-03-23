@@ -1,5 +1,5 @@
-import { number, z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../../../server/api/trpc";
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 // import { patients } from "@/server/db/schema";  // Commented out database schemas
 // import { caregivers } from "@/server/db/schema"; // Commented out database schemas
 
@@ -128,21 +128,13 @@ function rankNursesMCDM(
 	distanceA: number,
 	distanceB: number,
 ): NurseData[] {
-	function calculateScore(nurse: MockNurses): {
-		score: number;
-		outOfBounds: boolean;
-		optimalDistance: boolean;
-		nightShiftEligible: boolean;
-		weekendShiftEligible: boolean;
-	} {
-		let score = 0;
+	const nurseScores = nurses.map((nurse) => {
 		const matchingCompetencies = nurse.competencies.filter((c) =>
 			patient.needs.includes(c),
 		).length;
-		score += matchingCompetencies * 20;
-
-		let outOfBounds = false;
+		let score = matchingCompetencies * 20;
 		let optimalDistance = false;
+		let outOfBounds = false;
 
 		if (nurse.distance < distanceA) {
 			score += 10;
@@ -164,23 +156,6 @@ function rankNursesMCDM(
 			score += weights.weekendWeight * 5;
 		}
 
-		return {
-			score,
-			outOfBounds,
-			optimalDistance,
-			nightShiftEligible,
-			weekendShiftEligible,
-		};
-	}
-
-	const nurseScores = nurses.map((nurse) => {
-		const {
-			score,
-			outOfBounds,
-			optimalDistance,
-			nightShiftEligible,
-			weekendShiftEligible,
-		} = calculateScore(nurse);
 		return {
 			name: nurse.name,
 			score,
@@ -243,7 +218,7 @@ function rankNursesGreedy(
 		.sort((a, b) => b.percentage - a.percentage);
 }
 
-//  Handle algorithm type selection
+// Handle algorithm type selection
 function getNursesSortedByFit(
 	patient: MockPatient,
 	nurses: MockNurses[],
@@ -256,12 +231,11 @@ function getNursesSortedByFit(
 		nurses = nurses.filter((nurse) => nurse.competencies.includes(singleNeed));
 	}
 
-	if (algorithmType === "MCDM") {
-		return rankNursesMCDM(nurses, patient, weights, distanceA, distanceB);
-	} else if (algorithmType === "GREEDY") {
-		return rankNursesGreedy(nurses, patient, distanceB);
-	} else {
-		throw new Error(`Unsupported algorithm type`);
+	switch (algorithmType) {
+		case "MCDM":
+			return rankNursesMCDM(nurses, patient, weights, distanceA, distanceB);
+		case "GREEDY":
+			return rankNursesGreedy(nurses, patient, distanceB);
 	}
 }
 

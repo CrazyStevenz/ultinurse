@@ -1,6 +1,8 @@
 "use client";
+
 import { useState } from "react";
-import NursesPanel from "./nursesPanel";
+
+import NursesPanel from "./nursesPanel.tsx";
 
 type AlgorithmType = "MCDM" | "GREEDY";
 
