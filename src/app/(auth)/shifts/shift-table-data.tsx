@@ -11,11 +11,18 @@ export default function ShiftsTableData() {
 				<td className="animate-pulse p-4">
 					<div className="my-2 h-2 w-4 rounded bg-gray-200"></div>
 				</td>
-				<td className="animate-pulse">
+				<td className="animate-pulse px-2">
 					<div className="h-2 w-20 rounded bg-gray-200 px-4"></div>
 				</td>
-				<td className="animate-pulse px-2">
-					<div className="float-right h-2 w-10 rounded bg-gray-200 px-4"></div>
+				<td>
+					<div className="flex h-14 animate-pulse items-center justify-center px-2">
+						<div className="h-2 w-8 rounded bg-gray-200"></div>
+					</div>
+				</td>
+				<td>
+					<div className="flex h-14 animate-pulse items-center justify-center px-2">
+						<div className="h-2 w-8 rounded bg-gray-200"></div>
+					</div>
 				</td>
 				<td className="animate-pulse px-2">
 					<div className="float-right h-2 w-28 rounded bg-gray-200"></div>
@@ -30,9 +37,12 @@ export default function ShiftsTableData() {
 		data.map(({ shift, patient }) => (
 			<tr key={shift.id} className="border-b border-white/15 last:border-b-0">
 				<td className="p-4">{shift.id}</td>
-				<td>{patient?.name}</td>
+				<td className="px-2">{patient?.name}</td>
 				<td className="w-8 px-2 text-center">
 					{shift.isNightShift ? "✅" : "❌"}
+				</td>
+				<td className="w-8 px-2 text-center">
+					{shift.isWeekendShift ? "✅" : "❌"}
 				</td>
 				<td className="px-2 text-right">
 					{shift.startsAt.toISOString().replace("T", " ").slice(0, 16)}
@@ -44,7 +54,7 @@ export default function ShiftsTableData() {
 		))
 	) : (
 		<tr>
-			<td colSpan={5} className="py-4 text-center align-middle italic">
+			<td colSpan={6} className="py-4 text-center align-middle italic">
 				No shifts yet.
 			</td>
 		</tr>

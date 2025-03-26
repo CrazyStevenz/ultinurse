@@ -36,6 +36,10 @@ export const shiftRouter = createTRPCRouter({
 						result.shift.startsAt,
 						result.shift.endsAt,
 					),
+					isWeekendShift: isWeekendShift(
+						result.shift.startsAt,
+						result.shift.endsAt,
+					),
 				},
 			};
 		});
@@ -61,5 +65,16 @@ function isNightShift(startAt: Date, endAt: Date) {
 		startAt.getHours() >= 22 ||
 		endAt.getHours() < 7 ||
 		endAt.getHours() >= 22
+	);
+}
+
+// Naive implementation to check if any part of a shift happens on the weekend.
+// Assumes that startAt and endAt are less than 24 hours apart.
+function isWeekendShift(startAt: Date, endAt: Date) {
+	return (
+		startAt.getDay() === 0 || // Shift starts on Sunday
+		startAt.getDay() === 6 || // Shift starts on Saturday
+		endAt.getDay() === 0 || // Shift ends on Sunday
+		endAt.getDay() === 6 // Shift ends on Saturday
 	);
 }
