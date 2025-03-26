@@ -2,7 +2,6 @@ import { createCallerFactory, createTRPCRouter } from "./trpc.ts";
 import { caregiverRouter } from "./routers/caregiver.ts";
 import { patientRouter } from "./routers/patient.ts";
 import { shiftRouter } from "./routers/shift.ts";
-import { hungarianRouter } from "./routers/hungarian.ts";
 import { algorithmRouter } from "./routers/algorithm";
 
 /**
