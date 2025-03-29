@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 
-import NursesPanel from "./nursesPanel.tsx";
-
-type AlgorithmType = "MCDM" | "GREEDY";
+import CaregiverPanel from "./caregiver-panel.tsx";
+import type { AlgorithmType } from "../../../server/api/routers/algorithm";
 
 export default function Patients() {
 	const [nightWeight, setNightWeight] = useState(1);
@@ -133,7 +132,7 @@ export default function Patients() {
 					<label className="ml-2">Show out of bounds nurses</label>
 				</div>
 			</div>
-			<NursesPanel
+			<CaregiverPanel
 				nightWeight={nightWeight}
 				weekendWeight={weekendWeight}
 				distanceWeight={distanceWeight}

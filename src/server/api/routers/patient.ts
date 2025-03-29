@@ -19,6 +19,6 @@ export const patientRouter = createTRPCRouter({
 		}),
 
 	read: protectedProcedure.query(async ({ ctx }) => {
-		return ctx.db.select().from(patients);
+		return ctx.db.select().from(patients).orderBy(patients.id);
 	}),
 });

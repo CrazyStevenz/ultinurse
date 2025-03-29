@@ -118,7 +118,11 @@ type NurseData = {
 	weekendShiftEligible: boolean;
 };
 
-type AlgorithmType = "MCDM" | "GREEDY";
+const AlgorithmType = {
+	MCDM: "MCDM",
+	GREEDY: "GREEDY",
+} as const;
+export type AlgorithmType = keyof typeof AlgorithmType;
 
 // MCDM Algorithm
 function rankNursesMCDM(
@@ -269,7 +273,7 @@ export const algorithmRouter = createTRPCRouter({
 				nightWeight: z.number().min(0).max(5),
 				weekendWeight: z.number().min(0).max(5),
 				distanceWeight: z.number().min(0).max(5),
-				algorithmType: z.enum(["MCDM", "GREEDY"]),
+				algorithmType: z.nativeEnum(AlgorithmType),
 			}),
 		)
 		.query(({ input }) => {

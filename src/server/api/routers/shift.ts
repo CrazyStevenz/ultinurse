@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
-import { patients, shifts } from "../../db/schema.ts";
+import { caregivers, patients, shifts } from "../../db/schema.ts";
 
 export const shiftRouter = createTRPCRouter({
 	create: protectedProcedure
@@ -25,7 +25,9 @@ export const shiftRouter = createTRPCRouter({
 		const results = await ctx.db
 			.select()
 			.from(shifts)
-			.leftJoin(patients, eq(shifts.patientId, patients.id));
+			.leftJoin(patients, eq(shifts.patientId, patients.id))
+			.leftJoin(caregivers, eq(shifts.caregiverId, caregivers.id))
+			.orderBy(shifts.id);
 
 		return results.map((result) => {
 			return {

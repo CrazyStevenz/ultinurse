@@ -1,0 +1,2 @@
+ALTER TABLE "shift" ADD COLUMN "caregiver_id" integer;--> statement-breakpoint
+ALTER TABLE "shift" ADD CONSTRAINT "shift_caregiver_id_caregiver_id_fk" FOREIGN KEY ("caregiver_id") REFERENCES "public"."caregiver"("id") ON DELETE no action ON UPDATE no action;

@@ -25,6 +25,11 @@ export default async function Shifts() {
 								<tr className="border-b border-white/20">
 									<th className="w-16 p-4 py-3">ID</th>
 									<th className="w-full min-w-24 px-2">Patient</th>
+									<th className="min-w-48 px-2 text-right">
+										<div className="flex h-14 items-center justify-center px-2">
+											Caregiver
+										</div>
+									</th>
 									<th className="px-2 text-right">Night</th>
 									<th className="px-2 text-right">Weekend</th>
 									<th className="w-44 min-w-44 px-2 text-right">Starts At</th>
