@@ -73,8 +73,6 @@ export default function CaregiverPanel({
 			return true;
 		}) ?? [];
 
-	console.log(filteredCaregivers);
-
 	return (
 		<>
 			<button
