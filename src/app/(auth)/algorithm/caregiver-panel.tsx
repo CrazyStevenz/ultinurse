@@ -3,16 +3,6 @@
 import { api } from "../../../trpc/react.tsx";
 import type { AlgorithmType } from "../../../server/api/routers/algorithm";
 
-type NursesPanelProps = {
-	nightWeight: number;
-	weekendWeight: number;
-	distanceWeight: number;
-	algorithmType: AlgorithmType;
-	showMeetsAllNeeds: boolean;
-	showPartiallyMeetsNeeds: boolean;
-	showOutOfBounds: boolean;
-};
-
 export default function CaregiverPanel({
 	nightWeight,
 	weekendWeight,
@@ -21,7 +11,17 @@ export default function CaregiverPanel({
 	showMeetsAllNeeds,
 	showPartiallyMeetsNeeds,
 	showOutOfBounds,
-}: NursesPanelProps) {
+	setCaregiverId,
+}: {
+	nightWeight: number;
+	weekendWeight: number;
+	distanceWeight: number;
+	algorithmType: AlgorithmType;
+	showMeetsAllNeeds: boolean;
+	showPartiallyMeetsNeeds: boolean;
+	showOutOfBounds: boolean;
+	setCaregiverId?: (v: number) => void;
+}) {
 	// Fetch nurses data using the API
 	const {
 		data: caregiverData,
@@ -87,13 +87,16 @@ export default function CaregiverPanel({
 				{filteredCaregivers.map((caregiver, index) => (
 					<li
 						key={caregiver.name}
-						className={`flex flex-col py-4 first:rounded-t-sm last:rounded-b-sm ${
+						className={`flex cursor-pointer flex-col py-4 first:rounded-t-sm last:rounded-b-sm ${
 							caregiver.outOfBounds
 								? "bg-gray-700 text-gray-400"
 								: caregiver.percentage > 90
-									? "bg-green-200 text-black"
-									: "bg-yellow-100 text-black"
+									? "bg-green-200 text-black hover:bg-green-300"
+									: "bg-yellow-100 text-black hover:bg-yellow-200"
 						}`}
+						onClick={() =>
+							setCaregiverId ? setCaregiverId(1) : alert(caregiver.name)
+						}
 					>
 						<div className="flex justify-between px-4">
 							<span>
@@ -112,9 +115,9 @@ export default function CaregiverPanel({
 						<div className="flex justify-between px-4">
 							<span>
 								{caregiver.optimalDistance ? (
-									<span className="text-green-500">✅ Optimal Distance</span>
+									<span className="text-green-600">✅ Optimal Distance</span>
 								) : caregiver.outOfBounds ? (
-									<span className="text-red-500">❌ Out of Bounds</span>
+									<span className="text-red-600">❌ Out of Bounds</span>
 								) : (
 									<span className="text-yellow-500">
 										⚠️ Acceptable Distance
@@ -124,16 +127,16 @@ export default function CaregiverPanel({
 							<div className="flex">
 								<span className="mr-2">
 									{caregiver.nightShiftEligible ? (
-										<span className="text-green-500">✅ Night Shift</span>
+										<span className="text-green-600">✅ Night Shift</span>
 									) : (
-										<span className="text-red-500">❌ Night Shift</span>
+										<span className="text-red-600">❌ Night Shift</span>
 									)}
 								</span>
 								<span>
 									{caregiver.weekendShiftEligible ? (
-										<span className="text-green-500">✅ Weekend Shift</span>
+										<span className="text-green-600">✅ Weekend Shift</span>
 									) : (
-										<span className="text-red-500">❌ Weekend Shift</span>
+										<span className="text-red-600">❌ Weekend Shift</span>
 									)}
 								</span>
 							</div>
