@@ -1,5 +1,6 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
+	boolean,
 	geometry,
 	index,
 	integer,
@@ -55,14 +56,20 @@ export const caregivers = pgTable(
 	{
 		id: integer().primaryKey().generatedByDefaultAsIdentity(),
 		name: varchar({ length: 255 }).notNull(),
-		userId: uuid()
+		prefersNights: boolean().notNull().default(false),
+		prefersWeekends: boolean().notNull().default(false),
+		skills: integer()
+			.array()
 			.notNull()
-			.references(() => users.id),
+			.default(sql`ARRAY[]::integer[]`),
+		location: geometry("location", { mode: "tuple", srid: 4326 })
+			.notNull()
+			.default(sql`ST_SetSRID(ST_MakePoint(40.636721, 22.94486), 4326)`),
 		...timestamps,
 	},
 	(caregiver) => [
-		index("caregiver_user_id_idx").on(caregiver.userId),
 		index("caregiver_name_idx").on(caregiver.name),
+		index("caregiver_spatial_index").using("gist", caregiver.location),
 	],
 );
 
@@ -76,7 +83,7 @@ export const patients = pgTable(
 	},
 	(patient) => [
 		index("patient_name_idx").on(patient.name),
-		index("spatial_index").using("gist", patient.location),
+		index("patient_spatial_index").using("gist", patient.location),
 	],
 );
 
@@ -108,12 +115,19 @@ export const shifts = pgTable(
 		endsAt: timestamp({ withTimezone: true }).notNull(),
 		...timestamps,
 	},
-	(shift) => [index("shift_patient_id_idx").on(shift.patientId)],
+	(shift) => [
+		index("shift_patient_id_idx").on(shift.patientId),
+		index("shift_caregiver_id_idx").on(shift.caregiverId),
+	],
 );
 export const shiftRelations = relations(shifts, ({ one }) => ({
 	patient: one(patients, {
 		fields: [shifts.patientId],
 		references: [patients.id],
+	}),
+	caregiver: one(caregivers, {
+		fields: [shifts.caregiverId],
+		references: [caregivers.id],
 	}),
 }));
 
