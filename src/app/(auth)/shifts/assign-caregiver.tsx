@@ -60,7 +60,7 @@ export function AssignCaregiver({ caregiverName }: { caregiverName?: string }) {
 							className="w-full"
 						/>
 					</div>
-					<div className="mb-4">
+					<div className="mt-2">
 						<label className="mb-2 block">
 							Weekend Shift Weight: {weekendWeight}
 						</label>
@@ -73,7 +73,7 @@ export function AssignCaregiver({ caregiverName }: { caregiverName?: string }) {
 							className="w-full"
 						/>
 					</div>
-					<div className="mb-4">
+					<div className="mt-2">
 						<label className="mb-2 block">
 							Distance Weight: {distanceWeight}
 						</label>
