@@ -1,7 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
-// import { patients } from "@/server/db/schema";  // Commented out database schemas
-// import { caregivers } from "@/server/db/schema"; // Commented out database schemas
+import { patients } from "../../db/schema.ts"; // Commented out database schemas
+import { caregivers } from "../../db/schema.ts"; // Commented out database schemas
+import { sql } from "drizzle-orm";
 
 const DISTANCE_A = 5;
 const DISTANCE_B = 15;
@@ -10,6 +14,14 @@ type Weights = {
 	nightWeight: number;
 	weekendWeight: number;
 	distanceWeight: number;
+};
+
+type Caregivers = {
+	name: string;
+	skills: number[];
+	distance: number;
+	prefersNights: boolean;
+	prefersWeekends: boolean;
 };
 
 type MockNurses = {
@@ -22,7 +34,7 @@ type MockNurses = {
 
 type MockPatient = {
 	name: string;
-	needs: string[];
+	needs: number[];
 	needsNight: boolean;
 	needsWeekend: boolean;
 };
@@ -126,32 +138,35 @@ export type AlgorithmType = keyof typeof AlgorithmType;
 
 // MCDM Algorithm
 function rankNursesMCDM(
-	nurses: MockNurses[],
+	caregivers: Caregivers[],
 	patient: MockPatient,
 	weights: Weights,
 	distanceA: number,
 	distanceB: number,
 ): NurseData[] {
-	const nurseScores = nurses.map((nurse) => {
-		const matchingCompetencies = nurse.competencies.filter((c) =>
+	const caregiverScores = caregivers.map((caregiver) => {
+		const matchingCompetencies = caregiver.skills.filter((c) =>
 			patient.needs.includes(c),
 		).length;
 		let score = matchingCompetencies * 20;
 		let optimalDistance = false;
 		let outOfBounds = false;
 
-		if (nurse.distance < distanceA) {
+		if (caregiver.distance < distanceA) {
 			score += 10;
 			optimalDistance = true;
-		} else if (nurse.distance >= distanceA && nurse.distance <= distanceB) {
-			score -= (nurse.distance - distanceA) * weights.distanceWeight;
+		} else if (
+			caregiver.distance >= distanceA &&
+			caregiver.distance <= distanceB
+		) {
+			score -= (caregiver.distance - distanceA) * weights.distanceWeight;
 		} else {
 			score -= 100;
 			outOfBounds = true;
 		}
 
-		const nightShiftEligible = !nurse.prefersDays;
-		const weekendShiftEligible = !nurse.prefersWeekdays;
+		const nightShiftEligible = !caregiver.prefersNights;
+		const weekendShiftEligible = !caregiver.prefersWeekends;
 
 		if (patient.needsNight === nightShiftEligible) {
 			score += weights.nightWeight * 5;
@@ -161,10 +176,10 @@ function rankNursesMCDM(
 		}
 
 		return {
-			name: nurse.name,
+			name: caregiver.name,
 			score,
-			distance: nurse.distance,
-			meetsAllNeeds: nurse.competencies.some((c) => patient.needs.includes(c)),
+			distance: caregiver.distance,
+			meetsAllNeeds: caregiver.skills.some((c) => patient.needs.includes(c)),
 			outOfBounds,
 			optimalDistance,
 			nightShiftEligible,
@@ -172,12 +187,12 @@ function rankNursesMCDM(
 		};
 	});
 
-	const maxScore = Math.max(...nurseScores.map((nurse) => nurse.score));
+	const maxScore = Math.max(...caregiverScores.map((nurse) => nurse.score));
 
-	return nurseScores
-		.map((nurse) => ({
-			...nurse,
-			percentage: maxScore > 0 ? (nurse.score / maxScore) * 100 : 0,
+	return caregiverScores
+		.map((caregiver) => ({
+			...caregiver,
+			percentage: maxScore > 0 ? (caregiver.score / maxScore) * 100 : 0,
 		}))
 		.sort((a, b) => b.percentage - a.percentage);
 }
@@ -248,19 +263,27 @@ function rankNursesGreedy(
 // Handle algorithm type selection
 function getNursesSortedByFit(
 	patient: MockPatient,
-	nurses: MockNurses[],
+	caregiversWithDistance: Caregivers[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
 ): NurseData[] {
 	// If the patient has only one need and it's defined, filter out nurses who don't meet it
 	if (patient.needs.length === 1 && patient.needs[0]) {
 		const singleNeed = patient.needs[0];
-		nurses = nurses.filter((nurse) => nurse.competencies.includes(singleNeed));
+		caregiversWithDistance = caregiversWithDistance.filter((caregivers) =>
+			caregivers.skills.includes(singleNeed),
+		);
 	}
 
 	switch (algorithmType) {
 		case "MCDM":
-			return rankNursesMCDM(nurses, patient, weights, DISTANCE_A, DISTANCE_B);
+			return rankNursesMCDM(
+				caregiversWithDistance,
+				patient,
+				weights,
+				DISTANCE_A,
+				DISTANCE_B,
+			);
 		case "GREEDY":
 			return rankNursesGreedy(nurses, patient, weights, DISTANCE_B);
 	}
@@ -276,7 +299,54 @@ export const algorithmRouter = createTRPCRouter({
 				algorithmType: z.nativeEnum(AlgorithmType),
 			}),
 		)
-		.query(({ input }) => {
+		.query(async ({ ctx, input }) => {
+			// Step 1: Retrieve the patient's location
+			const singlePatient = await ctx.db
+				.select({
+					id: patients.id,
+					name: patients.name,
+					location: patients.location,
+				})
+				.from(patients)
+				.limit(1);
+
+			if (!singlePatient.length) {
+				throw new Error("No patient found.");
+			}
+
+			const patientPoint = singlePatient[0]?.location;
+			if (!patientPoint) {
+				throw new Error("No patient location found.");
+			}
+
+			const patientLocationResult = await ctx.db
+				.select({
+					location: sql<string>`ST_AsText(${patients.location})`, // Convert to WKT format
+				})
+				.from(patients)
+				.limit(1);
+
+			const patientPointWKT = patientLocationResult[0]?.location;
+			if (!patientPointWKT) {
+				throw new Error("No patient location found.");
+			}
+
+			const caregiversWithDistance = await ctx.db
+				.select({
+					id: caregivers.id,
+					name: caregivers.name,
+					prefersNights: caregivers.prefersNights,
+					prefersWeekends: caregivers.prefersWeekends,
+					skills: caregivers.skills,
+					location: caregivers.location,
+					distance: sql<number>`ST_Distance(
+        ST_GeomFromText(${patientPointWKT}, 4326),
+        ${caregivers.location}::geometry
+    )`,
+				})
+				.from(caregivers);
+
+			// Step 3: Define weights and pass to sorting function
 			const weights = {
 				nightWeight: input.nightWeight,
 				weekendWeight: input.weekendWeight,
@@ -285,7 +355,7 @@ export const algorithmRouter = createTRPCRouter({
 
 			return getNursesSortedByFit(
 				MOCK_PATIENT,
-				MOCK_NURSES,
+				caregiversWithDistance,
 				weights,
 				input.algorithmType,
 			);
