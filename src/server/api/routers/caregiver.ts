@@ -1,18 +1,7 @@
-import { z } from "zod";
-
 import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 import { caregivers } from "../../db/schema.ts";
 
 export const caregiverRouter = createTRPCRouter({
-	create: protectedProcedure
-		.input(z.object({ name: z.string().min(1) }))
-		.mutation(async ({ ctx, input }) => {
-			await ctx.db.insert(caregivers).values({
-				name: input.name,
-				userId: ctx.session.user.id,
-			});
-		}),
-
 	read: protectedProcedure.query(async ({ ctx }) => {
 		return ctx.db.select().from(caregivers);
 	}),
