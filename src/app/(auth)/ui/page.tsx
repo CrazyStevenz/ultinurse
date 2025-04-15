@@ -1,6 +1,6 @@
 import { Button } from "../../_components/ui/button.tsx";
 
-export default async function UIKit() {
+export default function UIKit() {
 	return (
 		<div className="flex flex-col items-start">
 			<div className="flex flex-row items-center gap-5">
