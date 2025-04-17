@@ -1,6 +1,6 @@
-import { Button } from "../../_components/ui/button.tsx";
+import { Button } from "../_components/ui/button.tsx";
 
-export default function UIKit() {
+export default function UIKitPage() {
 	return (
 		<div className="flex flex-col items-start">
 			<div className="flex flex-row items-center gap-5">
