@@ -9,7 +9,7 @@ const Map = dynamic(() => import("../../../app/_components/map.tsx"), {
 	ssr: false,
 });
 
-export default function PatientData() {
+export function PatientData() {
 	const { data, isLoading } = api.patient.read.useQuery();
 
 	return (
