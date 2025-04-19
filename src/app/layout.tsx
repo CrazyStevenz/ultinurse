@@ -5,8 +5,8 @@ import { type ReactNode } from "react";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "../trpc/react.tsx";
-import TopNav from "./_components/nav/top-nav";
-import BottomNav from "./_components/nav/bottom-nav.tsx";
+import { TopNav } from "./_components/nav/top-nav";
+import { BottomNav } from "./_components/nav/bottom-nav.tsx";
 
 const geist = Geist({ subsets: ["latin"] });
 

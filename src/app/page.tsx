@@ -1,14 +1,6 @@
-import { LatestCaregiver } from "./_components/caregiver.tsx";
-import { auth } from "../server/auth/index.ts";
-import { api, HydrateClient } from "../trpc/server.ts";
+import { HydrateClient } from "../trpc/server.ts";
 
-export default async function Home() {
-	const session = await auth();
-
-	if (session?.user) {
-		void api.caregiver.getLatest.prefetch();
-	}
-
+export default function Home() {
 	return (
 		<HydrateClient>
 			<div className="flex flex-col items-center justify-center">
@@ -16,8 +8,6 @@ export default async function Home() {
 					<h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
 						Opti<span className="text-green-500">Nurse</span>
 					</h1>
-
-					{session?.user && <LatestCaregiver />}
 				</div>
 			</div>
 		</HydrateClient>

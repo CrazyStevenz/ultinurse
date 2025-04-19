@@ -1,7 +1,7 @@
 import { auth } from "../../../server/auth/index.ts";
-import BottomNavLinks from "./bottom-nav-links.tsx";
+import { BottomNavLinks } from "./bottom-nav-links.tsx";
 
-export default async function BottomNav() {
+export async function BottomNav() {
 	const session = await auth();
 
 	return (

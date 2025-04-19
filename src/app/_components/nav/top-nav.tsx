@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { LogIn, LogOut } from "lucide-react";
 
-import Navigation from "./top-nav-links.tsx";
+import { Navigation } from "./top-nav-links.tsx";
 import { auth } from "../../../server/auth/index.ts";
 import { api } from "../../../trpc/server.ts";
 
-export default async function TopNav() {
+export async function TopNav() {
 	const session = await auth();
 
 	if (session?.user) {
