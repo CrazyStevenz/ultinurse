@@ -41,7 +41,7 @@ type MockPatient = {
 
 const MOCK_PATIENT: MockPatient = {
 	name: "P1",
-	needs: ["A"],
+	needs: [1],
 	needsNight: false,
 	needsWeekend: true,
 };
@@ -187,42 +187,43 @@ function rankNursesMCDM(
 		};
 	});
 
-	const maxScore = Math.max(...caregiverScores.map((nurse) => nurse.score));
+	const maxScore = Math.max(...caregiverScores.map((n) => n.score));
 
 	return caregiverScores
-		.map((caregiver) => ({
-			...caregiver,
-			percentage: maxScore > 0 ? (caregiver.score / maxScore) * 100 : 0,
+		.map((n) => ({
+			...n,
+			percentage:
+				maxScore > 0 ? Math.round((n.score / maxScore) * 1000) / 10 : 0, // rounded to 1 decimal
 		}))
 		.sort((a, b) => b.percentage - a.percentage);
 }
 
 // Greedy Algorithm
 function rankNursesGreedy(
-	nurses: MockNurses[],
+	caregivers: Caregivers[],
 	patient: MockPatient,
 	weights: Weights,
 	distanceB: number,
 ): NurseData[] {
-	const nurseScores = nurses
-		.filter((nurse) =>
-			nurse.competencies.some((c) => patient.needs.includes(c)),
+	const caregiverScores = caregivers
+		.filter((caregiver) =>
+			caregiver.skills.some((c) => patient.needs.includes(c)),
 		)
-		.map((nurse) => {
-			const outOfBounds = nurse.distance > distanceB;
-			const optimalDistance = nurse.distance < DISTANCE_A;
-			const nightShiftEligible = !nurse.prefersDays;
-			const weekendShiftEligible = !nurse.prefersWeekdays;
+		.map((caregiver) => {
+			const outOfBounds = caregiver.distance > distanceB;
+			const optimalDistance = caregiver.distance < DISTANCE_A;
+			const nightShiftEligible = caregiver.prefersNights;
+			const weekendShiftEligible = caregiver.prefersWeekends;
 
 			let score = 0;
 
 			// Greedy choice 1: distance
-			if (nurse.distance < DISTANCE_A) {
-				score += 10; // Prioritize nurses who are within the optimal distance
-			} else if (nurse.distance <= DISTANCE_B) {
-				score += 5; // Penalize those farther away but within acceptable range
+			if (caregiver.distance < DISTANCE_A) {
+				score += 10;
+			} else if (caregiver.distance <= DISTANCE_B) {
+				score += 5;
 			} else {
-				score -= 10; // Penalize those out of bounds
+				score -= 10;
 			}
 
 			// Greedy choice 2: Night shift eligibility
@@ -235,14 +236,11 @@ function rankNursesGreedy(
 				score += weights.weekendWeight * 5;
 			}
 
-			// Return a structured score with additional data
 			return {
-				name: nurse.name,
+				name: caregiver.name,
 				score,
-				distance: nurse.distance,
-				meetsAllNeeds: nurse.competencies.every((c) =>
-					patient.needs.includes(c),
-				),
+				distance: caregiver.distance,
+				meetsAllNeeds: caregiver.skills.every((c) => patient.needs.includes(c)),
 				outOfBounds,
 				optimalDistance,
 				nightShiftEligible,
@@ -250,14 +248,15 @@ function rankNursesGreedy(
 			};
 		});
 
-	// Normalize and sort the scores based on the highest score
-	const maxScore = Math.max(...nurseScores.map((nurse) => nurse.score));
-	return nurseScores
-		.map((nurse) => ({
-			...nurse,
-			percentage: maxScore > 0 ? (nurse.score / maxScore) * 100 : 0,
+	const maxScore = Math.max(...caregiverScores.map((n) => n.score));
+
+	return caregiverScores
+		.map((n) => ({
+			...n,
+			percentage:
+				maxScore > 0 ? Math.round((n.score / maxScore) * 1000) / 10 : 0,
 		}))
-		.sort((a, b) => b.percentage - a.percentage); // Sort in descending order of score
+		.sort((a, b) => b.percentage - a.percentage);
 }
 
 // Handle algorithm type selection
@@ -285,7 +284,12 @@ function getNursesSortedByFit(
 				DISTANCE_B,
 			);
 		case "GREEDY":
-			return rankNursesGreedy(nurses, patient, weights, DISTANCE_B);
+			return rankNursesGreedy(
+				caregiversWithDistance,
+				patient,
+				weights,
+				DISTANCE_B,
+			);
 	}
 }
 
@@ -339,10 +343,13 @@ export const algorithmRouter = createTRPCRouter({
 					prefersWeekends: caregivers.prefersWeekends,
 					skills: caregivers.skills,
 					location: caregivers.location,
-					distance: sql<number>`ST_Distance(
-        ST_GeomFromText(${patientPointWKT}, 4326),
-        ${caregivers.location}::geometry
-    )`,
+					distance: sql<number>`ROUND(
+					(ST_Distance(
+						ST_GeomFromText(${patientPointWKT}, 4326)::geography,
+						${caregivers.location}::geography
+					) / 1000)::numeric,
+					1
+				)`,
 				})
 				.from(caregivers);
 
