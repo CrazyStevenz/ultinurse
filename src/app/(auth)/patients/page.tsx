@@ -1,11 +1,11 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { CreatePatient } from "./create-patient.tsx";
 import { PatientData } from "./patient-data.tsx";
-import { Suspense } from "react";
 import { LoadingIndicator } from "../../_components/loading-indicator";
 import { auth } from "../../../server/auth";
-import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
 	title: "Patients - OptiNurse",
