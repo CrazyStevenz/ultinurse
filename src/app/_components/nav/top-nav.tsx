@@ -16,7 +16,7 @@ export async function TopNav() {
 						className="flex items-center space-x-3 rtl:space-x-reverse"
 					>
 						<span className="self-center whitespace-nowrap text-2xl font-extrabold text-white">
-							Opti<span className="text-green-500">Nurse</span>
+							Ulti<span className="text-green-500">Nurse</span>
 						</span>
 					</Link>
 					{session && (

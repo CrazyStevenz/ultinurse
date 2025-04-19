@@ -8,7 +8,7 @@ import { auth } from "../../../server/auth";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-	title: "Shifts - OptiNurse",
+	title: "Shifts - UltiNurse",
 };
 
 async function ShiftsContent() {

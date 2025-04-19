@@ -8,7 +8,7 @@ import { LoadingIndicator } from "../../_components/loading-indicator";
 import { auth } from "../../../server/auth";
 
 export const metadata: Metadata = {
-	title: "Patients - OptiNurse",
+	title: "Patients - UltiNurse",
 };
 
 async function PatientsContent() {

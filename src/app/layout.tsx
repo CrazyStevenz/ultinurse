@@ -11,7 +11,7 @@ import { BottomNav } from "./_components/nav/bottom-nav.tsx";
 const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	title: "OptiNurse",
+	title: "UltiNurse",
 	description: "A nursing staff management platform",
 	icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
