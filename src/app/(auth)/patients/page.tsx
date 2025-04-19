@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { CreatePatient } from "./create-patient.tsx";
 import { PatientData } from "./patient-data.tsx";
-import { api, HydrateClient } from "../../../trpc/server.ts";
 import { Suspense } from "react";
 import { LoadingIndicator } from "../../_components/loading-indicator";
 import { auth } from "../../../server/auth";
@@ -18,16 +17,14 @@ async function PatientsContent() {
 		redirect("/");
 	}
 
-	void api.patient.read.prefetch();
-
 	return (
-		<HydrateClient>
+		<>
 			<div className="flex justify-between py-4">
 				<span className="text-3xl font-semibold">Patients</span>
 				<CreatePatient />
 			</div>
 			<PatientData />
-		</HydrateClient>
+		</>
 	);
 }
 

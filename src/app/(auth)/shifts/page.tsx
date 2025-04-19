@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 
 import ShiftsTableData from "./shift-table-data.tsx";
 import { CreateShift } from "./create-shift.tsx";
-import { api, HydrateClient } from "../../../trpc/server.ts";
 import { LoadingIndicator } from "../../_components/loading-indicator";
 import { auth } from "../../../server/auth";
 import { redirect } from "next/navigation";
@@ -18,10 +17,8 @@ async function ShiftsContent() {
 		redirect("/");
 	}
 
-	void api.shift.read.prefetch();
-
 	return (
-		<HydrateClient>
+		<>
 			<div className="flex justify-between py-4">
 				<span className="text-3xl font-semibold">Shifts</span>
 				<CreateShift />
@@ -29,7 +26,7 @@ async function ShiftsContent() {
 			<div className="flex flex-col overflow-x-auto rounded-xl border border-white/25">
 				<table className="w-auto table-fixed text-left">
 					<thead>
-						<tr className="border-b border-white/20">
+						<tr className="border-b border-white/20 p-8">
 							<th className="w-16 py-3 pl-4 pr-6">ID</th>
 							<th className="w-full min-w-24 px-2">Patient</th>
 							<th className="min-w-48 px-2 text-right">
@@ -48,7 +45,7 @@ async function ShiftsContent() {
 					</tbody>
 				</table>
 			</div>
-		</HydrateClient>
+		</>
 	);
 }
 
