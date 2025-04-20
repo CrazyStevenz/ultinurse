@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 
+import { api } from "../../../trpc/react.tsx";
 import CaregiverPanel from "./caregiver-panel.tsx";
+import ShiftPanel from "./shifts-panel.tsx";
 import type { AlgorithmType } from "../../../server/api/routers/algorithm";
 
 export default function Patients() {
@@ -13,6 +15,18 @@ export default function Patients() {
 	const [showMeetsAllNeeds, setShowMeetsAllNeeds] = useState(true);
 	const [showPartiallyMeetsNeeds, setShowPartiallyMeetsNeeds] = useState(true);
 	const [showOutOfBounds, setShowOutOfBounds] = useState(true);
+	const [showShifts, setShowShifts] = useState(true);
+
+	const {
+		data: shifts,
+		isLoading,
+		error,
+	} = api.algorithm.getShifts.useQuery({
+		nightWeight,
+		weekendWeight,
+		distanceWeight,
+		algorithmType,
+	});
 
 	const handleWeightChange = (
 		type: "night" | "weekend" | "distance" | "algorithmType",
@@ -140,6 +154,20 @@ export default function Patients() {
 				showMeetsAllNeeds={showMeetsAllNeeds}
 				showPartiallyMeetsNeeds={showPartiallyMeetsNeeds}
 				showOutOfBounds={showOutOfBounds}
+			/>
+			<div className="mb-6">
+				<input
+					type="checkbox"
+					checked={showShifts}
+					onChange={() => setShowShifts(!showShifts)}
+				/>
+				<label className="ml-2">Show available shifts</label>
+			</div>
+			<ShiftPanel
+				shifts={shifts}
+				isLoading={isLoading}
+				showShifts={showShifts}
+				error={null}
 			/>
 		</div>
 	);
