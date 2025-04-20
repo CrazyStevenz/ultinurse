@@ -6,6 +6,7 @@ import { api } from "../../../trpc/react.tsx";
 import CaregiverPanel from "./caregiver-panel.tsx";
 import ShiftPanel from "./shifts-panel.tsx";
 import type { AlgorithmType } from "../../../server/api/routers/algorithm";
+import type { GlobalAlgorithmType } from "../../../server/api/routers/algorithm";
 
 export default function Patients() {
 	const [nightWeight, setNightWeight] = useState(1);
@@ -16,6 +17,8 @@ export default function Patients() {
 	const [showPartiallyMeetsNeeds, setShowPartiallyMeetsNeeds] = useState(true);
 	const [showOutOfBounds, setShowOutOfBounds] = useState(true);
 	const [showShifts, setShowShifts] = useState(true);
+	const [globalAlgorithmType, setGlobalAlgorithmType] =
+		useState<GlobalAlgorithmType>("KNAPSACK");
 
 	const {
 		data: shifts,
@@ -26,10 +29,16 @@ export default function Patients() {
 		weekendWeight,
 		distanceWeight,
 		algorithmType,
+		globalAlgorithmType,
 	});
 
 	const handleWeightChange = (
-		type: "night" | "weekend" | "distance" | "algorithmType",
+		type:
+			| "night"
+			| "weekend"
+			| "distance"
+			| "algorithmType"
+			| "globalAlgorithmType",
 		value: number | AlgorithmType,
 	) => {
 		switch (type) {
@@ -44,6 +53,9 @@ export default function Patients() {
 				break;
 			case "algorithmType":
 				setAlgorithmType(value as AlgorithmType);
+				break;
+			case "globalAlgorithmType":
+				setGlobalAlgorithmType(value as GlobalAlgorithmType);
 				break;
 		}
 	};
@@ -100,6 +112,23 @@ export default function Patients() {
 					/>
 				</div>
 				<div className="mt-4">
+					<div className="mb-4">
+						<label className="mb-2 block">Global Strategy:</label>
+						<select
+							value={globalAlgorithmType}
+							onChange={(e) =>
+								handleWeightChange(
+									"globalAlgorithmType",
+									e.target.value as GlobalAlgorithmType,
+								)
+							}
+							className="h-10 w-full rounded-md bg-neutral-900 px-4 py-2 text-neutral-50 ring-offset-white transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:ring-offset-neutral-950 dark:hover:bg-neutral-50/90 dark:focus-visible:ring-neutral-300"
+						>
+							<option value="NONE">Use Per-Shift Algorithm</option>
+							<option value="KNAPSACK">Global Knapsack Strategy</option>
+						</select>
+					</div>
+
 					<label className="mb-2 block">Algorithm Type:</label>
 					<select
 						value={algorithmType}
