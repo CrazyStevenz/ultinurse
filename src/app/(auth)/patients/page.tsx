@@ -1,27 +1,37 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { CreatePatient } from "./create-patient.tsx";
-import PatientData from "./patient-data.tsx";
-import { api, HydrateClient } from "../../../trpc/server.ts";
+import { PatientData } from "./patient-data.tsx";
+import { LoadingIndicator } from "../../_components/loading-indicator";
+import { auth } from "../../../server/auth";
 
 export const metadata: Metadata = {
-	title: "Patients - OptiNurse",
+	title: "Patients - UltiNurse",
 };
 
-export default async function Patients() {
-	void api.patient.read.prefetch();
+async function PatientsContent() {
+	const session = await auth();
+	if (!session) {
+		redirect("/");
+	}
 
 	return (
-		<HydrateClient>
-			<div className="flex flex-col items-center">
-				<div className="container">
-					<div className="flex justify-between py-4">
-						<span className="text-4xl font-semibold">Patients</span>
-						<CreatePatient />
-					</div>
-					<PatientData />
-				</div>
+		<>
+			<div className="flex justify-between py-4">
+				<span className="text-3xl font-semibold">Patients</span>
+				<CreatePatient />
 			</div>
-		</HydrateClient>
+			<PatientData />
+		</>
+	);
+}
+
+export default function PatientsPage() {
+	return (
+		<Suspense fallback={<LoadingIndicator />}>
+			<PatientsContent />
+		</Suspense>
 	);
 }

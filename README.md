@@ -1,4 +1,4 @@
-# Optinurse
+# UltiNurse
 
 A nursing staff management platform.
 

@@ -11,7 +11,7 @@ import { BottomNav } from "./_components/nav/bottom-nav.tsx";
 const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-	title: "OptiNurse",
+	title: "UltiNurse",
 	description: "A nursing staff management platform",
 	icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
@@ -27,7 +27,11 @@ export default function RootLayout({
 						<TopNav />
 					</nav>
 
-					<main className="mx-2 min-h-[85vh] py-2">{children}</main>
+					<main className="mx-2 min-h-[85vh] py-2">
+						<div className="flex flex-col items-center">
+							<div className="container">{children}</div>
+						</div>
+					</main>
 
 					<nav className="mt-14 md:mt-0 md:hidden">
 						<BottomNav />

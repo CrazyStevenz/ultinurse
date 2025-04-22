@@ -3,14 +3,9 @@ import { LogIn, LogOut } from "lucide-react";
 
 import { Navigation } from "./top-nav-links.tsx";
 import { auth } from "../../../server/auth/index.ts";
-import { api } from "../../../trpc/server.ts";
 
 export async function TopNav() {
 	const session = await auth();
-
-	if (session?.user) {
-		void api.caregiver.getLatest.prefetch();
-	}
 
 	return (
 		<div className="container mx-auto">
@@ -21,7 +16,7 @@ export async function TopNav() {
 						className="flex items-center space-x-3 rtl:space-x-reverse"
 					>
 						<span className="self-center whitespace-nowrap text-2xl font-extrabold text-white">
-							Opti<span className="text-green-500">Nurse</span>
+							Ulti<span className="text-green-500">Nurse</span>
 						</span>
 					</Link>
 					{session && (
