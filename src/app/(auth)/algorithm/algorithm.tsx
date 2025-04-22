@@ -7,7 +7,7 @@ import type {
 	AlgorithmType,
 	GlobalAlgorithmType,
 } from "../../../server/api/routers/algorithm";
-import { api } from "../../../trpc/server.ts";
+import { api } from "../../../trpc/react.tsx";
 import ShiftPanel from "./shifts-panel.tsx";
 
 export function Algorithm() {
@@ -22,11 +22,7 @@ export function Algorithm() {
 	const [globalAlgorithmType, setGlobalAlgorithmType] =
 		useState<GlobalAlgorithmType>("KNAPSACK");
 
-	const {
-		data: shifts,
-		isLoading,
-		error,
-	} = api.algorithm.getShifts.useQuery({
+	const { data: shifts, isLoading } = api.algorithm.getShifts.useQuery({
 		nightWeight,
 		weekendWeight,
 		distanceWeight,
@@ -41,7 +37,7 @@ export function Algorithm() {
 			| "distance"
 			| "algorithmType"
 			| "globalAlgorithmType",
-		value: number | AlgorithmType,
+		value: number | AlgorithmType | GlobalAlgorithmType,
 	) => {
 		switch (type) {
 			case "night":
@@ -121,7 +117,7 @@ export function Algorithm() {
 							onChange={(e) =>
 								handleWeightChange(
 									"globalAlgorithmType",
-									e.target.value as GlobalAlgorithmType,
+									e.target.value as unknown as GlobalAlgorithmType,
 								)
 							}
 							className="h-10 w-full rounded-md bg-neutral-900 px-4 py-2 text-neutral-50 ring-offset-white transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:ring-offset-neutral-950 dark:hover:bg-neutral-50/90 dark:focus-visible:ring-neutral-300"
