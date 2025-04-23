@@ -1,10 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
-import { patients } from "../../db/schema.ts";
-import { caregivers } from "../../db/schema.ts";
+import { caregivers, patients } from "../../db/schema.ts";
 import { sql } from "drizzle-orm";
 
 const DISTANCE_A = 5;
@@ -29,13 +25,6 @@ type Caregiver = {
 	};
 };
 
-type MockPatient = {
-	name: string;
-	needs: number[];
-	needsNight: boolean;
-	needsWeekend: boolean;
-};
-
 type MockShift = {
 	id: number;
 	patientId: number;
@@ -52,7 +41,7 @@ type MockShift = {
 	assignedCaregiver: Caregiver | null;
 };
 
-export const MOCK_SHIFTS: MockShift[] = [
+const MOCK_SHIFTS: MockShift[] = [
 	{
 		id: 1,
 		patientId: 1,
@@ -615,24 +604,20 @@ export const algorithmRouter = createTRPCRouter({
 				distanceWeight: input.distanceWeight,
 			};
 
-			let updatedShifts;
-
 			if (input.globalAlgorithmType === "KNAPSACK") {
-				updatedShifts = assignCaregiversWithKnapsack(
+				return assignCaregiversWithKnapsack(
 					MOCK_SHIFTS,
 					baseCaregivers,
 					weights,
-				);
-			} else {
-				updatedShifts = assignCaregiversToShifts(
-					MOCK_SHIFTS,
-					baseCaregivers,
-					weights,
-					input.algorithmType ?? "GREEDY",
-					input.globalAlgorithmType ?? "NONE",
 				);
 			}
 
-			return updatedShifts;
+			return assignCaregiversToShifts(
+				MOCK_SHIFTS,
+				baseCaregivers,
+				weights,
+				input.algorithmType,
+				input.globalAlgorithmType,
+			);
 		}),
 });

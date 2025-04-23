@@ -1,6 +1,3 @@
-// ShiftPanel.tsx
-import React from "react";
-
 type Shift = {
 	id: number;
 	patientId: number;
@@ -30,19 +27,17 @@ type Caregiver = {
 	};
 };
 
-type ShiftPanelProps = {
-	shifts: Shift[] | undefined;
-	isLoading: boolean;
-	error: Error | null;
-	showShifts: boolean;
-};
-
-const ShiftPanel: React.FC<ShiftPanelProps> = ({
+export function ShiftPanel({
 	shifts,
 	isLoading,
 	error,
 	showShifts,
-}) => {
+}: {
+	shifts: Shift[] | undefined;
+	isLoading: boolean;
+	error: Error | null;
+	showShifts: boolean;
+}) {
 	if (!showShifts) return null;
 
 	return (
@@ -95,6 +90,4 @@ const ShiftPanel: React.FC<ShiftPanelProps> = ({
 			)}
 		</div>
 	);
-};
-
-export default ShiftPanel;
+}

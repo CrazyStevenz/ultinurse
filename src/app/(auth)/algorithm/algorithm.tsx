@@ -8,7 +8,7 @@ import type {
 	GlobalAlgorithmType,
 } from "../../../server/api/routers/algorithm";
 import { api } from "../../../trpc/react.tsx";
-import ShiftPanel from "./shifts-panel.tsx";
+import { ShiftPanel } from "./shifts-panel.tsx";
 
 export function Algorithm() {
 	const [nightWeight, setNightWeight] = useState(1);
