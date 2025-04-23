@@ -103,7 +103,7 @@ export default function CaregiverPanel({
 							<span>{caregiver.percentage.toFixed(1)}%</span>
 						</div>
 						<div className="flex justify-between px-4">
-							<span>Distance: {caregiver.distance}</span>
+							<span>Distance: {caregiver.distance} Km</span>
 							<span>
 								{caregiver.meetsAllNeeds
 									? "Meets all needs"

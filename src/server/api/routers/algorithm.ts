@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
-// import { patients } from "@/server/db/schema";  // Commented out database schemas
-// import { caregivers } from "@/server/db/schema"; // Commented out database schemas
+import { caregivers, patients } from "../../db/schema.ts";
+import { sql } from "drizzle-orm";
 
 const DISTANCE_A = 5;
 const DISTANCE_B = 15;
@@ -12,103 +12,101 @@ type Weights = {
 	distanceWeight: number;
 };
 
-type MockNurses = {
+type Caregiver = {
+	id: number;
 	name: string;
-	competencies: string[];
+	skills: number[];
 	distance: number;
-	prefersDays: boolean;
-	prefersWeekdays: boolean;
+	prefersNights: boolean;
+	prefersWeekends: boolean;
+	location: {
+		latitude: number;
+		longitude: number;
+	};
 };
 
-type MockPatient = {
-	name: string;
-	needs: string[];
-	needsNight: boolean;
-	needsWeekend: boolean;
+type MockShift = {
+	id: number;
+	patientId: number;
+	patientName: string;
+	startsAt: Date;
+	endsAt: Date;
+	isNightShift: boolean;
+	isWeekendShift: boolean;
+	needs: number[];
+	location: {
+		latitude: number;
+		longitude: number;
+	};
+	assignedCaregiver: Caregiver | null;
 };
 
-const MOCK_PATIENT: MockPatient = {
-	name: "P1",
-	needs: ["A"],
-	needsNight: false,
-	needsWeekend: true,
-};
-
-const MOCK_NURSES: MockNurses[] = [
+const MOCK_SHIFTS: MockShift[] = [
 	{
-		name: "N1",
-		competencies: ["A", "C", "E"],
-		distance: 1,
-		prefersDays: true,
-		prefersWeekdays: false,
+		id: 1,
+		patientId: 1,
+		startsAt: new Date("2025-04-19T08:00:00"),
+		endsAt: new Date("2025-04-19T16:00:00"),
+		isNightShift: false,
+		isWeekendShift: true,
+		needs: [1],
+		location: { latitude: 40.59531259054391, longitude: 22.946153826937028 },
+		assignedCaregiver: null,
+		patientName: "",
 	},
 	{
-		name: "N2",
-		competencies: ["B", "D", "F"],
-		distance: 3,
-		prefersDays: false,
-		prefersWeekdays: true,
+		id: 2,
+		patientId: 1,
+		startsAt: new Date("2025-04-20T22:00:00"),
+		endsAt: new Date("2025-04-21T06:00:00"),
+		isNightShift: true,
+		isWeekendShift: true,
+		needs: [2, 4],
+		location: { latitude: 40.694887059702275, longitude: 22.94735529918021 },
+		assignedCaregiver: null,
+		patientName: "",
 	},
 	{
-		name: "N3",
-		competencies: ["A", "B", "C"],
-		distance: 4,
-		prefersDays: true,
-		prefersWeekdays: true,
+		id: 3,
+		patientId: 2,
+		startsAt: new Date("2025-04-21T14:00:00"),
+		endsAt: new Date("2025-04-21T22:00:00"),
+		isNightShift: false,
+		isWeekendShift: false,
+		needs: [3],
+		location: { latitude: 40.61150563186957, longitude: 22.947786135463662 },
+		assignedCaregiver: null,
+		patientName: "",
 	},
 	{
-		name: "N4",
-		competencies: ["F", "C", "D"],
-		distance: 5,
-		prefersDays: false,
-		prefersWeekdays: false,
+		id: 4,
+		patientId: 2,
+		startsAt: new Date("2025-04-21T23:00:00"),
+		endsAt: new Date("2025-04-22T07:00:00"),
+		isNightShift: true,
+		isWeekendShift: false,
+		needs: [1, 5],
+		location: { latitude: 40.635793320692315, longitude: 22.948060146714177 },
+		assignedCaregiver: null,
+		patientName: "",
 	},
 	{
-		name: "N5",
-		competencies: ["B", "A", "D"],
-		distance: 10,
-		prefersDays: true,
-		prefersWeekdays: false,
-	},
-	{
-		name: "N6",
-		competencies: ["E", "A", "F"],
-		distance: 2,
-		prefersDays: false,
-		prefersWeekdays: true,
-	},
-	{
-		name: "N7",
-		competencies: ["B", "A", "C"],
-		distance: 15,
-		prefersDays: true,
-		prefersWeekdays: true,
-	},
-	{
-		name: "N8",
-		competencies: ["D", "E", "F"],
-		distance: 23,
-		prefersDays: false,
-		prefersWeekdays: false,
-	},
-	{
-		name: "N9",
-		competencies: ["E", "A", "B"],
-		distance: 8,
-		prefersDays: false,
-		prefersWeekdays: true,
-	},
-	{
-		name: "N10",
-		competencies: ["D", "A", "E"],
-		distance: 7,
-		prefersDays: true,
-		prefersWeekdays: false,
+		id: 5,
+		patientId: 3,
+		startsAt: new Date("2025-04-18T10:00:00"),
+		endsAt: new Date("2025-04-18T18:00:00"),
+		isNightShift: false,
+		isWeekendShift: false,
+		needs: [2],
+		location: { latitude: 40.550989807139686, longitude: 22.947228925873333 },
+		assignedCaregiver: null,
+		patientName: "",
 	},
 ];
 
 type NurseData = {
 	name: string;
+	score: number;
 	percentage: number;
 	distance: number;
 	meetsAllNeeds: boolean;
@@ -122,148 +120,366 @@ const AlgorithmType = {
 	MCDM: "MCDM",
 	GREEDY: "GREEDY",
 } as const;
-export type AlgorithmType = keyof typeof AlgorithmType;
 
-// MCDM Algorithm
+const GlobalAlgorithmType = {
+	NONE: "NONE",
+	KNAPSACK: "KNAPSACK",
+} as const;
+
+export type AlgorithmType = keyof typeof AlgorithmType;
+export type GlobalAlgorithmType = keyof typeof GlobalAlgorithmType;
+
+function calculateHaversineDistance(
+	point1: { latitude: number; longitude: number },
+	point2: { latitude: number; longitude: number },
+): number {
+	const R = 6371;
+	const dLat = (point2.latitude - point1.latitude) * (Math.PI / 180);
+	const dLon = (point2.longitude - point1.longitude) * (Math.PI / 180);
+	const lat1 = point1.latitude * (Math.PI / 180);
+	const lat2 = point2.latitude * (Math.PI / 180);
+
+	const a =
+		Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+		Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	return Number((R * c).toFixed(1));
+}
+
+function normalizeScores<T extends { score: number }>(
+	nurses: T[],
+): (T & { percentage: number })[] {
+	const maxScore = Math.max(...nurses.map((n) => n.score));
+	return nurses.map((n) => ({
+		...n,
+		percentage: maxScore > 0 ? Math.round((n.score / maxScore) * 1000) / 10 : 0,
+	}));
+}
+
 function rankNursesMCDM(
-	nurses: MockNurses[],
-	patient: MockPatient,
+	caregivers: Caregiver[],
+	patient: MockShift,
 	weights: Weights,
 	distanceA: number,
 	distanceB: number,
-): NurseData[] {
-	const nurseScores = nurses.map((nurse) => {
-		const matchingCompetencies = nurse.competencies.filter((c) =>
-			patient.needs.includes(c),
-		).length;
-		let score = matchingCompetencies * 20;
-		let optimalDistance = false;
-		let outOfBounds = false;
+): Omit<NurseData, "percentage">[] {
+	return caregivers.map((caregiver) =>
+		calculateFitScoreMCDM(caregiver, patient, weights, distanceA, distanceB),
+	);
+}
 
-		if (nurse.distance < distanceA) {
-			score += 10;
-			optimalDistance = true;
-		} else if (nurse.distance >= distanceA && nurse.distance <= distanceB) {
-			score -= (nurse.distance - distanceA) * weights.distanceWeight;
-		} else {
-			score -= 100;
-			outOfBounds = true;
-		}
+function rankNursesGreedy(
+	caregivers: Caregiver[],
+	patient: MockShift,
+	weights: Weights,
+	distanceB: number,
+): Omit<NurseData, "percentage">[] {
+	return caregivers
+		.filter((caregiver) =>
+			caregiver.skills.some((c) => patient.needs.includes(c)),
+		)
+		.map((caregiver) =>
+			calculateFitScoreGreedy(caregiver, patient, weights, distanceB),
+		);
+}
 
-		const nightShiftEligible = !nurse.prefersDays;
-		const weekendShiftEligible = !nurse.prefersWeekdays;
+function calculateFitScoreMCDM(
+	caregiver: Caregiver,
+	patient: MockShift,
+	weights: Weights,
+	distanceA: number,
+	distanceB: number,
+): Omit<NurseData, "percentage"> {
+	const matchingCompetencies = caregiver.skills.filter((c) =>
+		patient.needs.includes(c),
+	).length;
+	let score = matchingCompetencies * 20;
+	let optimalDistance = false;
+	let outOfBounds = false;
 
-		if (patient.needsNight === nightShiftEligible) {
-			score += weights.nightWeight * 5;
-		}
-		if (patient.needsWeekend === weekendShiftEligible) {
-			score += weights.weekendWeight * 5;
-		}
+	if (caregiver.distance < distanceA) {
+		score += 10;
+		optimalDistance = true;
+	} else if (caregiver.distance <= distanceB) {
+		score -= (caregiver.distance - distanceA) * weights.distanceWeight;
+	} else {
+		score -= 100;
+		outOfBounds = true;
+	}
+
+	const nightShiftEligible = !caregiver.prefersNights;
+	const weekendShiftEligible = !caregiver.prefersWeekends;
+
+	if (patient.isNightShift === nightShiftEligible) {
+		score += weights.nightWeight * 5;
+	}
+	if (patient.isWeekendShift === weekendShiftEligible) {
+		score += weights.weekendWeight * 5;
+	}
+
+	return {
+		name: caregiver.name,
+		score,
+		distance: caregiver.distance,
+		meetsAllNeeds: caregiver.skills.some((c) => patient.needs.includes(c)),
+		outOfBounds,
+		optimalDistance,
+		nightShiftEligible,
+		weekendShiftEligible,
+	};
+}
+
+function calculateFitScoreGreedy(
+	caregiver: Caregiver,
+	patient: MockShift,
+	weights: Weights,
+	distanceB: number,
+): Omit<NurseData, "percentage"> {
+	const outOfBounds = caregiver.distance > distanceB;
+	const optimalDistance = caregiver.distance < DISTANCE_A;
+	const nightShiftEligible = caregiver.prefersNights;
+	const weekendShiftEligible = caregiver.prefersWeekends;
+
+	let score = 0;
+
+	if (caregiver.distance < DISTANCE_A) {
+		score += 10;
+	} else if (caregiver.distance <= DISTANCE_B) {
+		score += 5;
+	} else {
+		score -= 10;
+	}
+
+	if (patient.isNightShift && nightShiftEligible) {
+		score += weights.nightWeight * 5;
+	}
+	if (patient.isWeekendShift && weekendShiftEligible) {
+		score += weights.weekendWeight * 5;
+	}
+
+	return {
+		name: caregiver.name,
+		score,
+		distance: caregiver.distance,
+		meetsAllNeeds: caregiver.skills.every((c) => patient.needs.includes(c)),
+		outOfBounds,
+		optimalDistance,
+		nightShiftEligible,
+		weekendShiftEligible,
+	};
+}
+
+function assignCaregiversWithKnapsack(
+	shifts: MockShift[],
+	caregivers: Caregiver[],
+	weights: Weights,
+): MockShift[] {
+	if (shifts.length === 0) {
+		console.warn("No shifts available to assign caregivers.");
+		return [];
+	}
+
+	const allPairs: {
+		shift: MockShift;
+		caregiver: Caregiver;
+		score: number;
+	}[] = [];
+
+	// Normalize caregivers' scores before pairing
+	const normalizedCaregivers = caregivers.map((caregiver) => {
+		const distance = calculateHaversineDistance(
+			caregiver.location,
+			shifts[0]!.location,
+		);
+		const caregiverWithDistance = { ...caregiver, distance };
+
+		// Get ranking score using the normalized approach
+		const [ranked] = getNursesSortedByFit(
+			shifts[0]!,
+			[caregiverWithDistance],
+			weights,
+			"MCDM",
+		);
 
 		return {
-			name: nurse.name,
-			score,
-			distance: nurse.distance,
-			meetsAllNeeds: nurse.competencies.some((c) => patient.needs.includes(c)),
-			outOfBounds,
-			optimalDistance,
-			nightShiftEligible,
-			weekendShiftEligible,
+			...caregiverWithDistance,
+			score: ranked?.percentage ?? 0, // Default to 0 if no score found
 		};
 	});
 
-	const maxScore = Math.max(...nurseScores.map((nurse) => nurse.score));
+	// Generate all possible pairs of shifts and caregivers, then rank by score
+	for (const shift of shifts) {
+		for (const caregiver of normalizedCaregivers) {
+			const distance = calculateHaversineDistance(
+				caregiver.location,
+				shift.location,
+			);
+			const caregiverWithDistance = { ...caregiver, distance };
 
-	return nurseScores
-		.map((nurse) => ({
-			...nurse,
-			percentage: maxScore > 0 ? (nurse.score / maxScore) * 100 : 0,
-		}))
-		.sort((a, b) => b.percentage - a.percentage);
+			const [ranked] = getNursesSortedByFit(
+				shift,
+				[caregiverWithDistance],
+				weights,
+				"MCDM",
+			);
+
+			if (ranked && ranked.percentage > 0) {
+				allPairs.push({
+					shift,
+					caregiver: caregiverWithDistance,
+					score: ranked.percentage, // Using pre-normalized score
+				});
+			}
+		}
+	}
+
+	// Sort pairs by score in descending order (higher scores first)
+	allPairs.sort((a, b) => b.score - a.score);
+
+	const assignedCaregivers = new Set<number>(); // Track which caregivers have been assigned
+	const assignedShifts = new Set<number>(); // Track which shifts have been assigned
+	const result: MockShift[] = shifts.map((s) => ({
+		...s,
+		assignedCaregiver: null,
+	}));
+
+	// First pass: Assign caregivers to shifts based on the highest score
+	for (const { shift, caregiver } of allPairs) {
+		if (
+			!assignedCaregivers.has(caregiver.id) &&
+			!assignedShifts.has(shift.id)
+		) {
+			assignedCaregivers.add(caregiver.id);
+			assignedShifts.add(shift.id);
+
+			const index = result.findIndex((s) => s.id === shift.id);
+			const targetShift = result[index];
+			if (!targetShift) continue;
+			targetShift.assignedCaregiver = caregiver;
+		}
+	}
+
+	// Second pass: Ensure every shift gets assigned a caregiver
+	for (const shift of shifts) {
+		if (!assignedShifts.has(shift.id)) {
+			// Find the next best available caregiver
+			for (const caregiver of normalizedCaregivers) {
+				if (!assignedCaregivers.has(caregiver.id)) {
+					assignedCaregivers.add(caregiver.id);
+					assignedShifts.add(shift.id);
+
+					const index = result.findIndex((s) => s.id === shift.id);
+					const targetShift = result[index];
+					if (!targetShift) continue;
+					targetShift.assignedCaregiver = caregiver;
+					break; // Move on to the next unassigned shift
+				}
+			}
+		}
+	}
+
+	return result;
 }
 
-// Greedy Algorithm
-function rankNursesGreedy(
-	nurses: MockNurses[],
-	patient: MockPatient,
-	weights: Weights,
-	distanceB: number,
-): NurseData[] {
-	const nurseScores = nurses
-		.filter((nurse) =>
-			nurse.competencies.some((c) => patient.needs.includes(c)),
-		)
-		.map((nurse) => {
-			const outOfBounds = nurse.distance > distanceB;
-			const optimalDistance = nurse.distance < DISTANCE_A;
-			const nightShiftEligible = !nurse.prefersDays;
-			const weekendShiftEligible = !nurse.prefersWeekdays;
-
-			let score = 0;
-
-			// Greedy choice 1: distance
-			if (nurse.distance < DISTANCE_A) {
-				score += 10; // Prioritize nurses who are within the optimal distance
-			} else if (nurse.distance <= DISTANCE_B) {
-				score += 5; // Penalize those farther away but within acceptable range
-			} else {
-				score -= 10; // Penalize those out of bounds
-			}
-
-			// Greedy choice 2: Night shift eligibility
-			if (patient.needsNight && nightShiftEligible) {
-				score += weights.nightWeight * 5;
-			}
-
-			// Greedy choice 3: Weekend shift eligibility
-			if (patient.needsWeekend && weekendShiftEligible) {
-				score += weights.weekendWeight * 5;
-			}
-
-			// Return a structured score with additional data
-			return {
-				name: nurse.name,
-				score,
-				distance: nurse.distance,
-				meetsAllNeeds: nurse.competencies.every((c) =>
-					patient.needs.includes(c),
-				),
-				outOfBounds,
-				optimalDistance,
-				nightShiftEligible,
-				weekendShiftEligible,
-			};
-		});
-
-	// Normalize and sort the scores based on the highest score
-	const maxScore = Math.max(...nurseScores.map((nurse) => nurse.score));
-	return nurseScores
-		.map((nurse) => ({
-			...nurse,
-			percentage: maxScore > 0 ? (nurse.score / maxScore) * 100 : 0,
-		}))
-		.sort((a, b) => b.percentage - a.percentage); // Sort in descending order of score
-}
-
-// Handle algorithm type selection
 function getNursesSortedByFit(
-	patient: MockPatient,
-	nurses: MockNurses[],
+	patient: MockShift,
+	caregiversWithDistance: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
 ): NurseData[] {
-	// If the patient has only one need and it's defined, filter out nurses who don't meet it
 	if (patient.needs.length === 1 && patient.needs[0]) {
 		const singleNeed = patient.needs[0];
-		nurses = nurses.filter((nurse) => nurse.competencies.includes(singleNeed));
+		caregiversWithDistance = caregiversWithDistance.filter((caregiver) =>
+			caregiver.skills.includes(singleNeed),
+		);
 	}
+
+	let scoredCaregivers: Omit<NurseData, "percentage">[];
 
 	switch (algorithmType) {
 		case "MCDM":
-			return rankNursesMCDM(nurses, patient, weights, DISTANCE_A, DISTANCE_B);
+			scoredCaregivers = rankNursesMCDM(
+				caregiversWithDistance,
+				patient,
+				weights,
+				DISTANCE_A,
+				DISTANCE_B,
+			);
+			break;
 		case "GREEDY":
-			return rankNursesGreedy(nurses, patient, weights, DISTANCE_B);
+			scoredCaregivers = rankNursesGreedy(
+				caregiversWithDistance,
+				patient,
+				weights,
+				DISTANCE_B,
+			);
+			break;
 	}
+
+	return normalizeScores(scoredCaregivers).sort(
+		(a, b) => b.percentage - a.percentage,
+	);
+}
+
+function parseLocation(wkt: string): { latitude: number; longitude: number } {
+	const match = /POINT\(([\d.]+) ([\d.]+)\)/.exec(wkt);
+	if (!match) throw new Error("Invalid location format");
+
+	const longitude = parseFloat(match[1]!);
+	const latitude = parseFloat(match[2]!);
+
+	return { latitude, longitude };
+}
+
+function assignCaregiversToShifts(
+	shifts: MockShift[],
+	caregivers: Caregiver[],
+	weights: Weights,
+	algorithmType: AlgorithmType,
+	globalAlgorithmType: GlobalAlgorithmType,
+): MockShift[] {
+	const assignedCaregivers = new Set<number>();
+
+	if (globalAlgorithmType === "KNAPSACK") {
+		return assignCaregiversWithKnapsack(shifts, caregivers, weights);
+	}
+
+	return shifts.map((shift) => {
+		const availableCaregivers = caregivers.filter(
+			(caregiver) => !assignedCaregivers.has(caregiver.id),
+		);
+
+		const caregiversWithDistance = availableCaregivers.map((caregiver) => ({
+			...caregiver,
+			distance: parseFloat(
+				calculateHaversineDistance(caregiver.location, shift.location).toFixed(
+					1,
+				),
+			),
+		}));
+
+		const rankedNurses = getNursesSortedByFit(
+			shift,
+			caregiversWithDistance,
+			weights,
+			algorithmType,
+		);
+
+		const topRanked = rankedNurses[0];
+		const bestCaregiver = topRanked
+			? (caregiversWithDistance.find((cg) => cg.name === topRanked.name) ??
+				null)
+			: null;
+
+		if (bestCaregiver) {
+			assignedCaregivers.add(bestCaregiver.id);
+		}
+
+		return {
+			...shift,
+			assignedCaregiver: bestCaregiver,
+		};
+	});
 }
 
 export const algorithmRouter = createTRPCRouter({
@@ -276,18 +492,132 @@ export const algorithmRouter = createTRPCRouter({
 				algorithmType: z.nativeEnum(AlgorithmType),
 			}),
 		)
-		.query(({ input }) => {
+		.query(async ({ ctx, input }) => {
+			const singlePatient = await ctx.db
+				.select({
+					id: patients.id,
+					name: patients.name,
+					location: patients.location,
+				})
+				.from(patients)
+				.limit(1);
+
+			if (!singlePatient.length) throw new Error("No patient found.");
+
+			const patientPoint = singlePatient[0]?.location;
+			if (!patientPoint) throw new Error("No patient location found.");
+
+			const patientLocationResult = await ctx.db
+				.select({
+					location: sql<string>`ST_AsText(${patients.location})`,
+				})
+				.from(patients)
+				.limit(1);
+
+			const patientPointWKT = patientLocationResult[0]?.location;
+			if (!patientPointWKT) throw new Error("No patient location found.");
+
+			const caregiversWithDistanceRaw = await ctx.db
+				.select({
+					id: caregivers.id,
+					name: caregivers.name,
+					prefersNights: caregivers.prefersNights,
+					prefersWeekends: caregivers.prefersWeekends,
+					skills: caregivers.skills,
+					locationWKT: sql<string>`ST_AsText(${caregivers.location})`,
+					distance: sql<number>`ST_DistanceSphere(
+						ST_GeomFromText(${patientPointWKT}),
+						${caregivers.location}
+					) / 1000`,
+				})
+				.from(caregivers);
+
+			const caregiversWithDistance: Caregiver[] = caregiversWithDistanceRaw.map(
+				(cg) => {
+					const parsedLocation = parseLocation(cg.locationWKT);
+					return {
+						id: cg.id,
+						name: cg.name,
+						prefersNights: cg.prefersNights,
+						prefersWeekends: cg.prefersWeekends,
+						skills: cg.skills,
+						location: parsedLocation,
+						distance: parseFloat(cg.distance.toFixed(1)),
+					};
+				},
+			);
+
+			const weights = {
+				nightWeight: input.nightWeight,
+				weekendWeight: input.weekendWeight,
+				distanceWeight: input.distanceWeight,
+			};
+			const selectedShift = MOCK_SHIFTS[0];
+			if (!selectedShift) throw new Error("No shifts available.");
+
+			return getNursesSortedByFit(
+				selectedShift,
+				caregiversWithDistance,
+				weights,
+				input.algorithmType,
+			);
+		}),
+
+	getShifts: protectedProcedure
+		.input(
+			z.object({
+				nightWeight: z.number().min(0).max(5),
+				weekendWeight: z.number().min(0).max(5),
+				distanceWeight: z.number().min(0).max(5),
+				algorithmType: z.nativeEnum(AlgorithmType),
+				globalAlgorithmType: z.nativeEnum(GlobalAlgorithmType),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const caregiversWithLocation = await ctx.db
+				.select({
+					id: caregivers.id,
+					name: caregivers.name,
+					prefersNights: caregivers.prefersNights,
+					prefersWeekends: caregivers.prefersWeekends,
+					skills: caregivers.skills,
+					locationWKT: sql<string>`ST_AsText(${caregivers.location})`,
+				})
+				.from(caregivers);
+
+			const baseCaregivers = caregiversWithLocation.map((cg) => {
+				const parsedLocation = parseLocation(cg.locationWKT);
+				return {
+					id: cg.id,
+					name: cg.name,
+					prefersNights: cg.prefersNights,
+					prefersWeekends: cg.prefersWeekends,
+					skills: cg.skills,
+					location: parsedLocation,
+					distance: 0,
+				};
+			});
+
 			const weights = {
 				nightWeight: input.nightWeight,
 				weekendWeight: input.weekendWeight,
 				distanceWeight: input.distanceWeight,
 			};
 
-			return getNursesSortedByFit(
-				MOCK_PATIENT,
-				MOCK_NURSES,
+			if (input.globalAlgorithmType === "KNAPSACK") {
+				return assignCaregiversWithKnapsack(
+					MOCK_SHIFTS,
+					baseCaregivers,
+					weights,
+				);
+			}
+
+			return assignCaregiversToShifts(
+				MOCK_SHIFTS,
+				baseCaregivers,
 				weights,
 				input.algorithmType,
+				input.globalAlgorithmType,
 			);
 		}),
 });

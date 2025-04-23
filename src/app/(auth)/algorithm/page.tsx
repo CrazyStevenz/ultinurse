@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "../../../server/auth";
 import { LoadingIndicator } from "../../_components/loading-indicator";
-import Algorithm from "./algorithm";
+import { Algorithm } from "./algorithm";
 
 async function AlgorithmContent() {
 	const session = await auth();
