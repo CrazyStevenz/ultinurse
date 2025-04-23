@@ -11,7 +11,7 @@ import {
 	uuid,
 	varchar,
 } from "drizzle-orm/pg-core";
-import { type AdapterAccount } from "next-auth/adapters";
+import type { AdapterAccountType } from "next-auth/adapters";
 
 const timestamps = {
 	createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
@@ -24,7 +24,7 @@ export const accounts = pgTable(
 		userId: uuid()
 			.notNull()
 			.references(() => users.id),
-		type: varchar({ length: 255 }).$type<AdapterAccount["type"]>().notNull(),
+		type: varchar({ length: 255 }).$type<AdapterAccountType>().notNull(),
 		provider: varchar({ length: 255 }).notNull(),
 		providerAccountId: varchar({ length: 255 }).notNull(),
 
