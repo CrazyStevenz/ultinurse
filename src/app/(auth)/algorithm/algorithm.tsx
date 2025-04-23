@@ -30,38 +30,9 @@ export function Algorithm() {
 		globalAlgorithmType,
 	});
 
-	const handleWeightChange = (
-		type:
-			| "night"
-			| "weekend"
-			| "distance"
-			| "algorithmType"
-			| "globalAlgorithmType",
-		value: number | AlgorithmType | GlobalAlgorithmType,
-	) => {
-		switch (type) {
-			case "night":
-				setNightWeight(value as number);
-				break;
-			case "weekend":
-				setWeekendWeight(value as number);
-				break;
-			case "distance":
-				setDistanceWeight(value as number);
-				break;
-			case "algorithmType":
-				setAlgorithmType(value as AlgorithmType);
-				break;
-			case "globalAlgorithmType":
-				setGlobalAlgorithmType(value as GlobalAlgorithmType);
-				break;
-		}
-	};
-
 	return (
 		<div className="flex flex-col items-center">
 			<h1 className="mb-4 text-2xl font-bold">Nurse Fit Rankings</h1>
-			{/* Weights Adjustment */}
 			<div className="mb-6 w-1/2">
 				<h2 className="mb-4 text-xl font-semibold">Adjust Weights</h2>
 				<div className="mb-4">
@@ -73,9 +44,7 @@ export function Algorithm() {
 						min="0"
 						max="5"
 						value={nightWeight}
-						onChange={(e) =>
-							handleWeightChange("night", Number(e.target.value))
-						}
+						onChange={(e) => setNightWeight(Number(e.target.value))}
 						className="w-full"
 					/>
 				</div>
@@ -88,9 +57,7 @@ export function Algorithm() {
 						min="0"
 						max="5"
 						value={weekendWeight}
-						onChange={(e) =>
-							handleWeightChange("weekend", Number(e.target.value))
-						}
+						onChange={(e) => setWeekendWeight(Number(e.target.value))}
 						className="w-full"
 					/>
 				</div>
@@ -103,9 +70,7 @@ export function Algorithm() {
 						min="0"
 						max="5"
 						value={distanceWeight}
-						onChange={(e) =>
-							handleWeightChange("distance", Number(e.target.value))
-						}
+						onChange={(e) => setDistanceWeight(Number(e.target.value))}
 						className="w-full"
 					/>
 				</div>
@@ -115,10 +80,7 @@ export function Algorithm() {
 						<select
 							value={globalAlgorithmType}
 							onChange={(e) =>
-								handleWeightChange(
-									"globalAlgorithmType",
-									e.target.value as unknown as GlobalAlgorithmType,
-								)
+								setGlobalAlgorithmType(e.target.value as GlobalAlgorithmType)
 							}
 							className="h-10 w-full rounded-md bg-neutral-900 px-4 py-2 text-neutral-50 ring-offset-white transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:ring-offset-neutral-950 dark:hover:bg-neutral-50/90 dark:focus-visible:ring-neutral-300"
 						>
@@ -130,12 +92,7 @@ export function Algorithm() {
 					<label className="mb-2 block">Algorithm Type:</label>
 					<select
 						value={algorithmType}
-						onChange={(e) =>
-							handleWeightChange(
-								"algorithmType",
-								e.target.value as AlgorithmType,
-							)
-						}
+						onChange={(e) => setAlgorithmType(e.target.value as AlgorithmType)}
 						className="h-10 w-full rounded-md bg-neutral-900 px-4 py-2 text-neutral-50 ring-offset-white transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:ring-offset-neutral-950 dark:hover:bg-neutral-50/90 dark:focus-visible:ring-neutral-300 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
 					>
 						<option value="MCDM">MCDM Algorithm</option>
