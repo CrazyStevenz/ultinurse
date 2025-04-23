@@ -9,6 +9,7 @@
     "db:start": "bash start-database.sh",
     "db:logs": "podman logs -f optinurse-postgres",
     "db:generate": "drizzle-kit generate",
+    "db:generate-empty": "drizzle-kit generate --custom",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",

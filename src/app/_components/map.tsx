@@ -37,7 +37,7 @@ export default function Map({
 	return (
 		<MapContainer
 			center={markers?.[0]?.location ?? [40.636, 22.944]}
-			zoom={16}
+			zoom={13}
 			className="z-0 aspect-square w-full md:aspect-video"
 			scrollWheelZoom={false}
 		>
