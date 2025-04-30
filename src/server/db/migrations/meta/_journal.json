@@ -50,6 +50,13 @@
       "when": 1745431863610,
       "tag": "0006_many_tusk",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1746046293649,
+      "tag": "0007_fat_jackal",
+      "breakpoints": true
     }
   ]
 }
