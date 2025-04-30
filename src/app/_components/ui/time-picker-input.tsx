@@ -33,7 +33,6 @@ const TimePickerInput = React.forwardRef<
 	(
 		{
 			className,
-			type = "tel",
 			value,
 			id,
 			name,
@@ -117,7 +116,7 @@ const TimePickerInput = React.forwardRef<
 					e.preventDefault();
 					onChange?.(e);
 				}}
-				type={type}
+				type="text"
 				inputMode="decimal"
 				onKeyDown={(e) => {
 					onKeyDown?.(e);
