@@ -23,7 +23,7 @@ purposes.
 Navigate to the folder where you want the project to be saved and run the following command:
 
 ```sh
-git clone https://github.com/CrazyStevenz/optinurse.git
+git clone git@github.com:CrazyStevenz/ultinurse.git
 ```
 
 ### Preparing
