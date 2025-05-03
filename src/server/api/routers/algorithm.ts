@@ -2,8 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 import { caregivers, patients, shifts } from "../../db/schema.ts";
 import { eq, sql } from "drizzle-orm";
-import { isWeekendShift,isNightShift } from "./shift";
-import { ScanHeartIcon } from "lucide-react";
+import { isNightShift, isWeekendShift } from "./shift";
 
 const DISTANCE_A = 5;
 const DISTANCE_B = 15;
@@ -487,7 +486,6 @@ function assignCaregiversToShifts(
 	});
 }
 
-
 export const algorithmRouter = createTRPCRouter({
 	read: protectedProcedure
 		.input(
@@ -628,7 +626,7 @@ export const algorithmRouter = createTRPCRouter({
 				assignedCaregiver: null,
 				isNightShift: isNightShift(shift.startsAt, shift.endsAt),
 				isWeekendShift: isWeekendShift(shift.startsAt, shift.endsAt),
-				needs: [1,2,3],
+				needs: [1, 2, 3],
 			}));
 
 			const weights = {
