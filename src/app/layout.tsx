@@ -21,7 +21,9 @@ export default function RootLayout({
 }: Readonly<{ children: ReactNode }>) {
 	return (
 		<html lang="en" className={geist.className + " dark"}>
-			<body className="min-h-screen bg-white bg-gradient-to-b from-black to-green-900 text-black dark:bg-black dark:text-white">
+			<body className="min-h-screen text-white">
+				<div className="fixed z-[-1] h-screen w-full bg-gradient-to-b from-black to-green-900"></div>
+
 				<TRPCReactProvider>
 					<nav className="hidden md:block">
 						<TopNav />
