@@ -45,7 +45,7 @@ export default function ShiftsTableData() {
 				<td className="p-4">{shift.id}</td>
 				<td className="px-2">{patient?.name}</td>
 				<td className="w-8 px-2 text-center">
-					<AssignCaregiver caregiverName={caregiver?.name} />
+					<AssignCaregiver shiftId={shift.id} caregiverName={caregiver?.name} />
 				</td>
 				<td className="w-8 px-2 text-center">
 					{shift.isNightShift ? "✅" : "❌"}

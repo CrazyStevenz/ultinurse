@@ -11,7 +11,7 @@ export default function CaregiverPanel({
 	showMeetsAllNeeds,
 	showPartiallyMeetsNeeds,
 	showOutOfBounds,
-	setCaregiverId,
+	assignCaregiver,
 }: {
 	nightWeight: number;
 	weekendWeight: number;
@@ -20,7 +20,7 @@ export default function CaregiverPanel({
 	showMeetsAllNeeds: boolean;
 	showPartiallyMeetsNeeds: boolean;
 	showOutOfBounds: boolean;
-	setCaregiverId?: (v: number) => void;
+	assignCaregiver?: (v: number) => void;
 }) {
 	// Fetch nurses data using the API
 	const {
@@ -93,7 +93,9 @@ export default function CaregiverPanel({
 									: "bg-yellow-100 text-black hover:bg-yellow-200"
 						}`}
 						onClick={() =>
-							setCaregiverId ? setCaregiverId(1) : alert(caregiver.name)
+							assignCaregiver
+								? assignCaregiver(caregiver.id)
+								: alert(caregiver.name)
 						}
 					>
 						<div className="flex justify-between px-4">
