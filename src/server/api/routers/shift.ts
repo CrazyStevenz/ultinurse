@@ -51,7 +51,7 @@ export const shiftRouter = createTRPCRouter({
 		.input(
 			z.object({
 				shiftId: z.number(),
-				caregiverId: z.number(),
+				caregiverId: z.number().nullable(),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {

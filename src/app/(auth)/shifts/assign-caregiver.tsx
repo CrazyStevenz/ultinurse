@@ -15,6 +15,7 @@ import CaregiverPanel from "../algorithm/caregiver-panel";
 import type { AlgorithmType } from "../../../server/api/routers/algorithm";
 import { api } from "../../../trpc/react";
 import Loading from "../loading.tsx";
+import { LoadingIndicator } from "../../_components/loading-indicator";
 
 export function AssignCaregiver({
 	shiftId,
@@ -42,7 +43,25 @@ export function AssignCaregiver({
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
 				<Button rounded size="sm">
-					{caregiverName ?? <span className="text-xl">+</span>}
+					{caregiverName ? (
+						<>
+							{caregiverName}
+							{isPending ? (
+								<LoadingIndicator small />
+							) : (
+								<div
+									onClick={(e) => {
+										e.preventDefault();
+										mutate({ shiftId, caregiverId: null });
+									}}
+								>
+									✖️
+								</div>
+							)}
+						</>
+					) : (
+						<span className="text-xl">+</span>
+					)}
 				</Button>
 			</DialogTrigger>
 			<DialogContent>
