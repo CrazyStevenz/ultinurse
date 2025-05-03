@@ -47,6 +47,23 @@ export const shiftRouter = createTRPCRouter({
 		});
 	}),
 
+	assignCaregiver: protectedProcedure
+		.input(
+			z.object({
+				shiftId: z.number(),
+				caregiverId: z.number(),
+			}),
+		)
+		.mutation(async ({ ctx, input }) => {
+			await ctx.db
+				.update(shifts)
+				.set({
+					caregiverId: input.caregiverId,
+				})
+				.where(eq(shifts.id, input.shiftId))
+				.returning({ id: shifts.id });
+		}),
+
 	generateRandom: protectedProcedure.mutation(async ({ ctx }) => {
 		const patientsList = await ctx.db.select().from(patients);
 
@@ -84,7 +101,6 @@ export const shiftRouter = createTRPCRouter({
 
 		await ctx.db.insert(shifts).values(shiftsToInsert);
 	}),
-
 });
 
 // Naive implementation of overlapping hours in a day. Assumes that startAt and

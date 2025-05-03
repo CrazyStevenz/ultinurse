@@ -15,7 +15,10 @@ import type { AdapterAccountType } from "next-auth/adapters";
 
 const timestamps = {
 	createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
-	updatedAt: timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
+	updatedAt: timestamp({ withTimezone: true })
+		.defaultNow()
+		.notNull()
+		.$onUpdate(() => new Date()),
 };
 
 export const accounts = pgTable(

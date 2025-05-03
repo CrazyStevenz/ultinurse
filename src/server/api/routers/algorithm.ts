@@ -107,6 +107,7 @@ const MOCK_SHIFTS: MockShift[] = [
 ];
 
 type NurseData = {
+	id: number;
 	name: string;
 	score: number;
 	percentage: number;
@@ -220,6 +221,7 @@ function calculateFitScoreMCDM(
 	}
 
 	return {
+		id: caregiver.id,
 		name: caregiver.name,
 		score,
 		distance: caregiver.distance,
@@ -260,6 +262,7 @@ function calculateFitScoreGreedy(
 	}
 
 	return {
+		id: caregiver.id,
 		name: caregiver.name,
 		score,
 		distance: caregiver.distance,

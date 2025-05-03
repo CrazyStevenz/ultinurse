@@ -14,6 +14,7 @@ import {
 } from "../../_components/ui/dialog.tsx";
 import { Button } from "../../_components/ui/button.tsx";
 import { TimePickerInput } from "../../_components/ui/time-picker-input.tsx";
+import { DateInput } from "../../_components/ui/date-input";
 
 export function CreateShift() {
 	const [open, setOpen] = useState(false);
@@ -110,12 +111,9 @@ export function CreateShift() {
 						>
 							Starts at
 						</label>
-						<input
-							id="start"
-							type="date"
-							value={`${startsAt.getFullYear()}-${(startsAt.getMonth() + 1).toString().padStart(2, "0")}-${startsAt.getDate()}`}
-							onChange={(e) => setStartsAt(new Date(e.target.value))}
-							className="w-auto rounded-full px-4 py-2 text-black"
+						<DateInput
+							onChange={(date) => setStartsAt(date)}
+							value={startsAt}
 						/>
 						<TimePickerInput
 							picker="hours"
@@ -141,13 +139,7 @@ export function CreateShift() {
 						>
 							Ends at
 						</label>
-						<input
-							id="end"
-							type="date"
-							value={`${endsAt.getFullYear()}-${(endsAt.getMonth() + 1).toString().padStart(2, "0")}-${endsAt.getDate()}`}
-							onChange={(e) => setEndsAt(new Date(e.target.value))}
-							className="w-auto rounded-full px-4 py-2 text-black"
-						/>
+						<DateInput onChange={(date) => setEndsAt(date)} value={endsAt} />
 						<TimePickerInput
 							picker="hours"
 							date={endsAt}
