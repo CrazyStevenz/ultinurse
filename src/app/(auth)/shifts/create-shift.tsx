@@ -30,6 +30,13 @@ export function CreateShift() {
 		},
 	});
 
+	const generateRandomShifts = api.shift.generateRandom.useMutation({
+		onSuccess: async () => {
+			await utils.shift.invalidate();
+		},
+	});
+
+
 	const { data, isLoading } = api.patient.read.useQuery();
 
 	return (
@@ -41,6 +48,14 @@ export function CreateShift() {
 				<DialogHeader>
 					<DialogTitle>Create shift</DialogTitle>
 				</DialogHeader>
+				<Button
+					type="submit"
+					variant="secondary"
+					onClick={() => generateRandomShifts.mutate()}
+					disabled={generateRandomShifts.isPending}
+				>
+					{generateRandomShifts.isPending ? "Generating..." : "Generate 10 Random Shifts"}
+				</Button>
 				<form
 					onSubmit={(e) => {
 						setError("");

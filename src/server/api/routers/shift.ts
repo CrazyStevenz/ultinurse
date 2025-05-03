@@ -46,11 +46,50 @@ export const shiftRouter = createTRPCRouter({
 			};
 		});
 	}),
+
+	generateRandom: protectedProcedure.mutation(async ({ ctx }) => {
+		const patientsList = await ctx.db.select().from(patients);
+
+		if (!patientsList.length) {
+			throw new Error("No patients available to create shifts.");
+		}
+
+		const now = new Date();
+		const year = now.getFullYear();
+		const month = now.getMonth(); // 0-based
+		const today = now.getDate();
+		const lastDay = new Date(year, month + 1, 0).getDate();
+
+		const shiftsToInsert = Array.from({ length: 10 }).map(() => {
+			const randomPatient =
+				patientsList[Math.floor(Math.random() * patientsList.length)];
+
+			const randomDay =
+				today + Math.floor(Math.random() * (lastDay - today + 1));
+			const startHour = 6 + Math.floor(Math.random() * 12); // 6AM to 5PM
+			const startMinute = Math.floor(Math.random() * 60);
+
+			const startsAt = new Date(year, month, randomDay, startHour, startMinute);
+
+			const durationHours = 1 + Math.floor(Math.random() * 8); // 1–8h
+			const durationMs = durationHours * 60 * 60 * 1000;
+			const endsAt = new Date(startsAt.getTime() + durationMs);
+
+			return {
+				patientId: 1,
+				startsAt,
+				endsAt,
+			};
+		});
+
+		await ctx.db.insert(shifts).values(shiftsToInsert);
+	}),
+
 });
 
 // Naive implementation of overlapping hours in a day. Assumes that startAt and
 // endAt are less than 24 hours apart.
-function isNightShift(startAt: Date, endAt: Date) {
+ export function isNightShift(startAt: Date, endAt: Date) {
 	// If endAt hour is smaller than startAt, it includes midnight, so night shift
 	if (
 		startAt.getHours() > endAt.getHours() ||
@@ -72,7 +111,7 @@ function isNightShift(startAt: Date, endAt: Date) {
 
 // Naive implementation to check if any part of a shift happens on the weekend.
 // Assumes that startAt and endAt are less than 24 hours apart.
-function isWeekendShift(startAt: Date, endAt: Date) {
+export function isWeekendShift(startAt: Date, endAt: Date) {
 	return (
 		startAt.getDay() === 0 || // Shift starts on Sunday
 		startAt.getDay() === 6 || // Shift starts on Saturday
