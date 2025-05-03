@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { auth } from "../../../server/auth";
-import { LoadingIndicator } from "../../_components/loading-indicator";
+import Loading from "../loading";
 import { Algorithm } from "./algorithm";
 
 async function AlgorithmContent() {
@@ -16,7 +16,7 @@ async function AlgorithmContent() {
 
 export default function AlgorithmPage() {
 	return (
-		<Suspense fallback={<LoadingIndicator />}>
+		<Suspense fallback={<Loading />}>
 			<AlgorithmContent />
 		</Suspense>
 	);

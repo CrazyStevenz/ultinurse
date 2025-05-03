@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 import ShiftsTableData from "./shift-table-data.tsx";
 import { CreateShift } from "./create-shift.tsx";
-import { LoadingIndicator } from "../../_components/loading-indicator";
+import Loading from "../loading";
 import { auth } from "../../../server/auth";
 import { redirect } from "next/navigation";
 
@@ -51,7 +51,7 @@ async function ShiftsContent() {
 
 export default function ShiftsPage() {
 	return (
-		<Suspense fallback={<LoadingIndicator />}>
+		<Suspense fallback={<Loading />}>
 			<ShiftsContent />
 		</Suspense>
 	);

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 
 import { CreatePatient } from "./create-patient.tsx";
 import { PatientData } from "./patient-data.tsx";
-import { LoadingIndicator } from "../../_components/loading-indicator";
+import Loading from "../loading";
 import { auth } from "../../../server/auth";
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ async function PatientsContent() {
 
 export default function PatientsPage() {
 	return (
-		<Suspense fallback={<LoadingIndicator />}>
+		<Suspense fallback={<Loading />}>
 			<PatientsContent />
 		</Suspense>
 	);
