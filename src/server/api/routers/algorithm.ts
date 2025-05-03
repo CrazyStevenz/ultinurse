@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
-import { caregivers, patients } from "../../db/schema.ts";
-import { sql } from "drizzle-orm";
+import { caregivers, patients, shifts } from "../../db/schema.ts";
+import { eq, sql } from "drizzle-orm";
+import { isNightShift, isWeekendShift } from "./shift";
 
 const DISTANCE_A = 5;
 const DISTANCE_B = 15;
@@ -601,6 +602,33 @@ export const algorithmRouter = createTRPCRouter({
 				};
 			});
 
+			const shiftsFromDb = await ctx.db
+				.select({
+					id: shifts.id,
+					patientId: shifts.patientId,
+					startsAt: shifts.startsAt,
+					endsAt: shifts.endsAt,
+					caregiverId: shifts.caregiverId,
+					patientName: patients.name,
+					patientLocationWKT: sql<string>`ST_AsText(${patients.location})`,
+				})
+				.from(shifts)
+				.leftJoin(patients, eq(shifts.patientId, patients.id));
+
+			const computedShifts = shiftsFromDb.map((shift) => ({
+				id: shift.id,
+				patientId: shift.patientId,
+				startsAt: new Date(shift.startsAt),
+				endsAt: new Date(shift.endsAt),
+				caregiverId: shift.caregiverId,
+				patientName: shift.patientName ?? "Unknown Patient",
+				location: parseLocation(shift.patientLocationWKT),
+				assignedCaregiver: null,
+				isNightShift: isNightShift(shift.startsAt, shift.endsAt),
+				isWeekendShift: isWeekendShift(shift.startsAt, shift.endsAt),
+				needs: [1, 2, 3],
+			}));
+
 			const weights = {
 				nightWeight: input.nightWeight,
 				weekendWeight: input.weekendWeight,
@@ -609,7 +637,7 @@ export const algorithmRouter = createTRPCRouter({
 
 			if (input.globalAlgorithmType === "KNAPSACK") {
 				return assignCaregiversWithKnapsack(
-					MOCK_SHIFTS,
+					computedShifts,
 					baseCaregivers,
 					weights,
 				);

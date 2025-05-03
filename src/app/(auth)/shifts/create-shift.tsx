@@ -17,7 +17,7 @@ import { TimePickerInput } from "../../_components/ui/time-picker-input.tsx";
 import { DateInput } from "../../_components/ui/date-input";
 
 export function CreateShift() {
-	const [open, setOpen] = useState(false);
+	const [isOpen, setIsOpen] = useState(false);
 	const [startsAt, setStartsAt] = useState(new Date());
 	const [endsAt, setEndsAt] = useState(new Date());
 	const [patientId, setPatientId] = useState<number | undefined>();
@@ -28,13 +28,21 @@ export function CreateShift() {
 	const createShift = api.shift.create.useMutation({
 		onSuccess: async () => {
 			await utils.shift.invalidate();
+			setIsOpen(false);
+		},
+	});
+
+	const generateRandomShifts = api.shift.generateRandom.useMutation({
+		onSuccess: async () => {
+			await utils.shift.invalidate();
+			setIsOpen(false);
 		},
 	});
 
 	const { data, isLoading } = api.patient.read.useQuery();
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
+		<Dialog open={isOpen} onOpenChange={setIsOpen}>
 			<DialogTrigger asChild>
 				<Button>Create shift</Button>
 			</DialogTrigger>
@@ -42,6 +50,16 @@ export function CreateShift() {
 				<DialogHeader>
 					<DialogTitle>Create shift</DialogTitle>
 				</DialogHeader>
+				<Button
+					type="submit"
+					variant="secondary"
+					onClick={() => generateRandomShifts.mutate()}
+					disabled={generateRandomShifts.isPending}
+				>
+					{generateRandomShifts.isPending
+						? "Generating..."
+						: "Generate 10 Random Shifts"}
+				</Button>
 				<form
 					onSubmit={(e) => {
 						setError("");
@@ -53,14 +71,11 @@ export function CreateShift() {
 						} else if (endsAt.getTime() - startsAt.getTime() >= 86340000) {
 							setError("Shift cannot be longer than 23 hours 59 minutes.");
 						} else {
-							createShift.mutate(
-								{
-									patientId,
-									startsAt,
-									endsAt,
-								},
-								{ onSuccess: () => setOpen(false) },
-							);
+							createShift.mutate({
+								patientId,
+								startsAt,
+								endsAt,
+							});
 						}
 					}}
 				>
