@@ -93,7 +93,7 @@ export const shiftRouter = createTRPCRouter({
 			const endsAt = new Date(startsAt.getTime() + durationMs);
 
 			return {
-				patientId: 1,
+				patientId: randomPatient!.id,
 				startsAt,
 				endsAt,
 			};
@@ -105,7 +105,7 @@ export const shiftRouter = createTRPCRouter({
 
 // Naive implementation of overlapping hours in a day. Assumes that startAt and
 // endAt are less than 24 hours apart.
- export function isNightShift(startAt: Date, endAt: Date) {
+export function isNightShift(startAt: Date, endAt: Date) {
 	// If endAt hour is smaller than startAt, it includes midnight, so night shift
 	if (
 		startAt.getHours() > endAt.getHours() ||
