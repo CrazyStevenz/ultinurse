@@ -100,7 +100,6 @@ export function Algorithm() {
 					</select>
 				</div>
 			</div>
-			Filter Options
 			<div className="mb-6">
 				<h2 className="mb-4 text-xl font-semibold">Filter Nurses</h2>
 				<div className="mb-4">

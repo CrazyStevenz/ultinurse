@@ -22,11 +22,7 @@ export default function CaregiverPanel({
 	showOutOfBounds: boolean;
 	assignCaregiver?: (v: number) => void;
 }) {
-	const {
-		data: caregiverData,
-		isLoading,
-		error,
-	} = api.algorithm.read.useQuery({
+	const { data, isLoading, error } = api.algorithm.read.useQuery({
 		nightWeight,
 		weekendWeight,
 		distanceWeight,
@@ -34,10 +30,10 @@ export default function CaregiverPanel({
 	});
 
 	if (isLoading) return <Skeleton />;
-	if (error) return <p>Error loading caregivers: {error.message}</p>;
+	if (error || !data) return <p>Error loading caregivers {error?.message}</p>;
 
 	const filteredCaregivers =
-		caregiverData?.filter((caregiver) => {
+		data.caregivers.filter((caregiver) => {
 			const shouldShowOutOfBounds = caregiver.outOfBounds && showOutOfBounds;
 			const isMeetingAllNeeds = caregiver.meetsAllNeeds && showMeetsAllNeeds;
 			const isPartiallyMeetingNeeds =
@@ -50,6 +46,9 @@ export default function CaregiverPanel({
 
 	return (
 		<ul className="md:min-w-96">
+			<div>
+				Calculation took: {data.algorithmRuntimeInMicroseconds.toFixed(0)}μs
+			</div>
 			{filteredCaregivers.map((caregiver, index) => (
 				<li
 					key={caregiver.name}

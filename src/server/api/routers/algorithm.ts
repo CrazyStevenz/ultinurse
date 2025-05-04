@@ -164,7 +164,7 @@ function rankNursesMCDM(
 	weights: Weights,
 	distanceA: number,
 	distanceB: number,
-): Omit<NurseData, "percentage">[] {
+) {
 	return caregivers.map((caregiver) =>
 		calculateFitScoreMCDM(caregiver, patient, weights, distanceA, distanceB),
 	);
@@ -191,7 +191,9 @@ function calculateFitScoreMCDM(
 	weights: Weights,
 	distanceA: number,
 	distanceB: number,
-): Omit<NurseData, "percentage"> {
+) {
+	const time = new Date().getTime();
+
 	const matchingCompetencies = caregiver.skills.filter((c) =>
 		patient.needs.includes(c),
 	).length;
@@ -229,6 +231,7 @@ function calculateFitScoreMCDM(
 		optimalDistance,
 		nightShiftEligible,
 		weekendShiftEligible,
+		algorithmRuntimeInMs: new Date().getTime() - time,
 	};
 }
 
@@ -559,12 +562,16 @@ export const algorithmRouter = createTRPCRouter({
 			const selectedShift = MOCK_SHIFTS[0];
 			if (!selectedShift) throw new Error("No shifts available.");
 
-			return getNursesSortedByFit(
+			const time = performance.now() * 1000;
+			const caregiverData = getNursesSortedByFit(
 				selectedShift,
 				caregiversWithDistance,
 				weights,
 				input.algorithmType,
 			);
+			const algorithmRuntimeInMicroseconds = performance.now() * 1000 - time;
+
+			return { caregivers: caregiverData, algorithmRuntimeInMicroseconds };
 		}),
 
 	getShifts: protectedProcedure
