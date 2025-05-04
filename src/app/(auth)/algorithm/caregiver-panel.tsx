@@ -49,7 +49,7 @@ export default function CaregiverPanel({
 		}) ?? [];
 
 	return (
-		<ul className="min-w-[460px]">
+		<ul className="md:min-w-96">
 			{filteredCaregivers.map((caregiver, index) => (
 				<li
 					key={caregiver.name}
@@ -83,26 +83,26 @@ export default function CaregiverPanel({
 					<div className="flex justify-between px-4">
 						<span>
 							{caregiver.optimalDistance ? (
-								<span className="text-green-600">✅ Optimal Distance</span>
+								<span className="text-green-600">✅ Distance</span>
 							) : caregiver.outOfBounds ? (
 								<span className="text-red-600">❌ Out of Bounds</span>
 							) : (
-								<span className="text-yellow-500">⚠️ Acceptable Distance</span>
+								<span className="text-yellow-500">⚠️ Distance</span>
 							)}
 						</span>
 						<div className="flex">
 							<span className="mr-2">
 								{caregiver.nightShiftEligible ? (
-									<span className="text-green-600">✅ Night Shift</span>
+									<span className="text-green-600">✅ Night</span>
 								) : (
-									<span className="text-red-600">❌ Night Shift</span>
+									<span className="text-red-600">❌ Night</span>
 								)}
 							</span>
 							<span>
 								{caregiver.weekendShiftEligible ? (
-									<span className="text-green-600">✅ Weekend Shift</span>
+									<span className="text-green-600">✅ Weekend</span>
 								) : (
-									<span className="text-red-600">❌ Weekend Shift</span>
+									<span className="text-red-600">❌ Weekend</span>
 								)}
 							</span>
 						</div>
