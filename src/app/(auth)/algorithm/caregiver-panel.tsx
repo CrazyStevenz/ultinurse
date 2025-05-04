@@ -46,7 +46,7 @@ export default function CaregiverPanel({
 
 	return (
 		<ul className="md:min-w-96">
-			<div>
+			<div className="text-sm">
 				Calculation took: {data.algorithmRuntimeInMicroseconds.toFixed(0)}μs
 			</div>
 			{filteredCaregivers.map((caregiver, index) => (
