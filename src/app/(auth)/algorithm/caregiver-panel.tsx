@@ -22,13 +22,10 @@ export default function CaregiverPanel({
 	showOutOfBounds: boolean;
 	assignCaregiver?: (v: number) => void;
 }) {
-	// Fetch nurses data using the API
 	const {
 		data: caregiverData,
 		isLoading,
 		error,
-		refetch,
-		isRefetching,
 	} = api.algorithm.read.useQuery({
 		nightWeight,
 		weekendWeight,
@@ -36,115 +33,83 @@ export default function CaregiverPanel({
 		algorithmType,
 	});
 
-	if (isLoading || isRefetching) {
-		return (
-			<>
-				<button
-					// @ts-expect-error Doesn't work if not passed directly
-					onClick={refetch}
-				>
-					Force refresh
-				</button>
-				<Skeleton />
-			</>
-		);
-	}
+	if (isLoading) return <Skeleton />;
+	if (error) return <p>Error loading caregivers: {error.message}</p>;
 
-	if (error) {
-		return <p>Error loading caregivers: {error.message}</p>;
-	}
-
-	// Apply filtering
 	const filteredCaregivers =
 		caregiverData?.filter((caregiver) => {
-			if (caregiver.outOfBounds && !showOutOfBounds) return false;
-			if (
-				caregiver.meetsAllNeeds &&
-				!caregiver.outOfBounds &&
-				!showMeetsAllNeeds
-			)
-				return false;
-			if (
-				!caregiver.meetsAllNeeds &&
-				!caregiver.outOfBounds &&
-				!showPartiallyMeetsNeeds
-			)
-				return false;
-			return true;
+			const shouldShowOutOfBounds = caregiver.outOfBounds && showOutOfBounds;
+			const isMeetingAllNeeds = caregiver.meetsAllNeeds && showMeetsAllNeeds;
+			const isPartiallyMeetingNeeds =
+				!caregiver.meetsAllNeeds && showPartiallyMeetsNeeds;
+
+			return (
+				shouldShowOutOfBounds || isMeetingAllNeeds || isPartiallyMeetingNeeds
+			);
 		}) ?? [];
 
 	return (
-		<>
-			<button
-				// @ts-expect-error Doesn't work if not passed directly
-				onClick={refetch}
-			>
-				Force refresh
-			</button>
-			<ul>
-				{filteredCaregivers.map((caregiver, index) => (
-					<li
-						key={caregiver.name}
-						className={`flex cursor-pointer flex-col py-4 first:rounded-t-sm last:rounded-b-sm ${
-							caregiver.outOfBounds
-								? "bg-gray-700 text-gray-400"
-								: caregiver.percentage > 90
-									? "bg-green-200 text-black hover:bg-green-300"
-									: "bg-yellow-100 text-black hover:bg-yellow-200"
-						}`}
-						onClick={() =>
-							assignCaregiver
-								? assignCaregiver(caregiver.id)
-								: alert(caregiver.name)
-						}
-					>
-						<div className="flex justify-between px-4">
-							<span>
-								{index + 1}. {caregiver.name}
-							</span>
-							<span>{caregiver.percentage.toFixed(1)}%</span>
-						</div>
-						<div className="flex justify-between px-4">
-							<span>Distance: {caregiver.distance} Km</span>
-							<span>
-								{caregiver.meetsAllNeeds
-									? "Meets all needs"
-									: "Partially meets needs"}
-							</span>
-						</div>
-						<div className="flex justify-between px-4">
-							<span>
-								{caregiver.optimalDistance ? (
-									<span className="text-green-600">✅ Optimal Distance</span>
-								) : caregiver.outOfBounds ? (
-									<span className="text-red-600">❌ Out of Bounds</span>
+		<ul className="min-w-[460px]">
+			{filteredCaregivers.map((caregiver, index) => (
+				<li
+					key={caregiver.name}
+					className={`flex cursor-pointer flex-col py-4 first:rounded-t-sm last:rounded-b-sm ${
+						caregiver.outOfBounds
+							? "bg-gray-700 text-gray-400"
+							: caregiver.percentage > 90
+								? "bg-green-200 text-black hover:bg-green-300"
+								: "bg-yellow-100 text-black hover:bg-yellow-200"
+					}`}
+					onClick={() =>
+						assignCaregiver
+							? assignCaregiver(caregiver.id)
+							: alert(caregiver.name)
+					}
+				>
+					<div className="flex justify-between px-4">
+						<span>
+							{index + 1}. {caregiver.name}
+						</span>
+						<span>{caregiver.percentage.toFixed(1)}%</span>
+					</div>
+					<div className="flex justify-between px-4">
+						<span>Distance: {caregiver.distance} Km</span>
+						<span>
+							{caregiver.meetsAllNeeds
+								? "Meets all needs"
+								: "Partially meets needs"}
+						</span>
+					</div>
+					<div className="flex justify-between px-4">
+						<span>
+							{caregiver.optimalDistance ? (
+								<span className="text-green-600">✅ Optimal Distance</span>
+							) : caregiver.outOfBounds ? (
+								<span className="text-red-600">❌ Out of Bounds</span>
+							) : (
+								<span className="text-yellow-500">⚠️ Acceptable Distance</span>
+							)}
+						</span>
+						<div className="flex">
+							<span className="mr-2">
+								{caregiver.nightShiftEligible ? (
+									<span className="text-green-600">✅ Night Shift</span>
 								) : (
-									<span className="text-yellow-500">
-										⚠️ Acceptable Distance
-									</span>
+									<span className="text-red-600">❌ Night Shift</span>
 								)}
 							</span>
-							<div className="flex">
-								<span className="mr-2">
-									{caregiver.nightShiftEligible ? (
-										<span className="text-green-600">✅ Night Shift</span>
-									) : (
-										<span className="text-red-600">❌ Night Shift</span>
-									)}
-								</span>
-								<span>
-									{caregiver.weekendShiftEligible ? (
-										<span className="text-green-600">✅ Weekend Shift</span>
-									) : (
-										<span className="text-red-600">❌ Weekend Shift</span>
-									)}
-								</span>
-							</div>
+							<span>
+								{caregiver.weekendShiftEligible ? (
+									<span className="text-green-600">✅ Weekend Shift</span>
+								) : (
+									<span className="text-red-600">❌ Weekend Shift</span>
+								)}
+							</span>
 						</div>
-					</li>
-				))}
-			</ul>
-		</>
+					</div>
+				</li>
+			))}
+		</ul>
 	);
 }
 
