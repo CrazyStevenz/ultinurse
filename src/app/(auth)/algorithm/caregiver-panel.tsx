@@ -57,7 +57,7 @@ export default function CaregiverPanel({
 					key={caregiver.name}
 					className={`flex cursor-pointer flex-col py-4 first:rounded-t-sm last:rounded-b-sm ${
 						caregiver.outOfBounds
-							? "bg-gray-700 text-gray-400"
+							? "bg-gray-700 text-gray-400 hover:bg-gray-800"
 							: caregiver.percentage > 90
 								? "bg-green-200 text-black hover:bg-green-300"
 								: "bg-yellow-100 text-black hover:bg-yellow-200"
@@ -89,7 +89,7 @@ export default function CaregiverPanel({
 							) : caregiver.outOfBounds ? (
 								<span className="text-red-600">❌ Out of Bounds</span>
 							) : (
-								<span className="text-yellow-500">⚠️ Distance</span>
+								<span className="text-yellow-600">⚠️ Distance</span>
 							)}
 						</span>
 						<div className="flex">
