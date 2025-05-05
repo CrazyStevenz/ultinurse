@@ -1,3 +1,5 @@
+import type { Caregiver } from "../../../server/api/routers/algorithm";
+
 type Shift = {
 	id: number;
 	patientId: number;
@@ -7,15 +9,6 @@ type Shift = {
 	isWeekendShift: boolean;
 	needs: number[];
 	assignedCaregiver?: Caregiver;
-};
-
-type Caregiver = {
-	id: number;
-	name: string;
-	skills: number[];
-	distance: number;
-	prefersNights: boolean;
-	prefersWeekends: boolean;
 };
 
 export function ShiftPanel({

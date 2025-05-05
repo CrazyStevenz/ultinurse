@@ -9,13 +9,25 @@ import { calculateHaversineDistance } from "../utils/calculate-haversine-distanc
 const SOFT_DISTANCE = 5;
 const HARD_DISTANCE = 8;
 
+const AlgorithmType = {
+	MCDM: "MCDM",
+	GREEDY: "GREEDY",
+} as const;
+
+const GlobalAlgorithmType = {
+	NONE: "NONE",
+	KNAPSACK: "KNAPSACK",
+} as const;
+export type AlgorithmType = keyof typeof AlgorithmType;
+export type GlobalAlgorithmType = keyof typeof GlobalAlgorithmType;
+
 type Weights = {
 	nightWeight: number;
 	weekendWeight: number;
 	distanceWeight: number;
 };
 
-type Caregiver = {
+export type Caregiver = {
 	id: number;
 	name: string;
 	skills: number[];
@@ -25,7 +37,7 @@ type Caregiver = {
 	location: [number, number];
 };
 
-type MockShift = {
+type Shift = {
 	id: number;
 	patientId: number;
 	startsAt: Date;
@@ -38,7 +50,7 @@ type MockShift = {
 	assignedCaregiver?: Caregiver;
 };
 
-const MOCK_SHIFTS: MockShift[] = [
+const MOCK_SHIFTS: Shift[] = [
 	{
 		id: 1,
 		patientId: 1,
@@ -109,19 +121,6 @@ type NurseData = {
 	weekendShiftEligible: boolean;
 };
 
-const AlgorithmType = {
-	MCDM: "MCDM",
-	GREEDY: "GREEDY",
-} as const;
-
-const GlobalAlgorithmType = {
-	NONE: "NONE",
-	KNAPSACK: "KNAPSACK",
-} as const;
-
-export type AlgorithmType = keyof typeof AlgorithmType;
-export type GlobalAlgorithmType = keyof typeof GlobalAlgorithmType;
-
 function normalizeScores<T extends { score: number }>(
 	nurses: T[],
 ): (T & { percentage: number })[] {
@@ -134,7 +133,7 @@ function normalizeScores<T extends { score: number }>(
 
 function rankNursesMCDM(
 	caregivers: Caregiver[],
-	patient: MockShift,
+	patient: Shift,
 	weights: Weights,
 ) {
 	return caregivers.map((caregiver) =>
@@ -144,7 +143,7 @@ function rankNursesMCDM(
 
 function rankNursesGreedy(
 	caregivers: Caregiver[],
-	patient: MockShift,
+	patient: Shift,
 	weights: Weights,
 ): Omit<NurseData, "percentage">[] {
 	return caregivers
@@ -156,7 +155,7 @@ function rankNursesGreedy(
 
 function calculateFitScoreMCDM(
 	caregiver: Caregiver,
-	shift: MockShift,
+	shift: Shift,
 	weights: Weights,
 ) {
 	const time = new Date().getTime();
@@ -204,7 +203,7 @@ function calculateFitScoreMCDM(
 
 function calculateFitScoreGreedy(
 	caregiver: Caregiver,
-	shift: MockShift,
+	shift: Shift,
 	weights: Weights,
 ): Omit<NurseData, "percentage"> {
 	const outOfBounds = caregiver.distance > HARD_DISTANCE;
@@ -243,7 +242,7 @@ function calculateFitScoreGreedy(
 }
 
 function assignCaregiversWithKnapsack(
-	shifts: MockShift[],
+	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
 ) {
@@ -253,7 +252,7 @@ function assignCaregiversWithKnapsack(
 	}
 
 	const allPairs: {
-		shift: MockShift;
+		shift: Shift;
 		caregiver: Caregiver;
 		score: number;
 	}[] = [];
@@ -360,7 +359,7 @@ function assignCaregiversWithKnapsack(
 }
 
 function getNursesSortedByFit(
-	shift: MockShift,
+	shift: Shift,
 	caregivers: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
@@ -387,7 +386,7 @@ function getNursesSortedByFit(
 }
 
 function assignCaregiversToShifts(
-	shifts: MockShift[],
+	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
