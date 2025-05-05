@@ -2,7 +2,9 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 import { caregivers, patients, shifts } from "../../db/schema.ts";
 import { eq, getTableColumns, sql } from "drizzle-orm";
-import { isNightShift, isWeekendShift } from "./shift";
+import { isNightShift } from "../utils/is-night-shift";
+import { isWeekendShift } from "../utils/is-weekend-shift";
+import { calculateHaversineDistance } from "../utils/calculate-haversine-distance";
 
 const SOFT_DISTANCE = 5;
 const HARD_DISTANCE = 8;
@@ -119,23 +121,6 @@ const GlobalAlgorithmType = {
 
 export type AlgorithmType = keyof typeof AlgorithmType;
 export type GlobalAlgorithmType = keyof typeof GlobalAlgorithmType;
-
-function calculateHaversineDistance(
-	point1: [number, number],
-	point2: [number, number],
-): number {
-	const R = 6371;
-	const dLat = (point2[0] - point1[0]) * (Math.PI / 180);
-	const dLon = (point2[1] - point1[1]) * (Math.PI / 180);
-	const lat1 = point1[0] * (Math.PI / 180);
-	const lat2 = point2[0] * (Math.PI / 180);
-
-	const a =
-		Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-		Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
-	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-	return Number((R * c).toFixed(1));
-}
 
 function normalizeScores<T extends { score: number }>(
 	nurses: T[],

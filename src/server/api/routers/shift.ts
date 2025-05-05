@@ -3,6 +3,8 @@ import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 import { caregivers, patients, shifts } from "../../db/schema.ts";
+import { isWeekendShift } from "../utils/is-weekend-shift";
+import { isNightShift } from "../utils/is-night-shift.ts";
 
 export const shiftRouter = createTRPCRouter({
 	create: protectedProcedure
@@ -96,48 +98,3 @@ export const shiftRouter = createTRPCRouter({
 		await ctx.db.insert(shifts).values(shiftsToInsert);
 	}),
 });
-
-// Naive implementation of overlapping hours in a day. Assumes that startAt and
-// endAt are less than 24 hours apart.
-export function isNightShift({
-	startsAt,
-	endsAt,
-}: {
-	startsAt: Date;
-	endsAt: Date;
-}) {
-	// If endAt hour is smaller than startAt, it includes midnight, so night shift
-	if (
-		startsAt.getHours() > endsAt.getHours() ||
-		(startsAt.getHours() === endsAt.getHours() &&
-			startsAt.getMinutes() > endsAt.getMinutes())
-	) {
-		return true;
-	}
-
-	// Since we already handled the edge case above, we can now just check if
-	// either the start or end time is within our night shift timespan.
-	return (
-		startsAt.getHours() < 7 ||
-		startsAt.getHours() >= 22 ||
-		endsAt.getHours() < 7 ||
-		endsAt.getHours() >= 22
-	);
-}
-
-// Naive implementation to check if any part of a shift happens on the weekend.
-// Assumes that startAt and endAt are less than 24 hours apart.
-export function isWeekendShift({
-	startsAt,
-	endsAt,
-}: {
-	startsAt: Date;
-	endsAt: Date;
-}) {
-	return (
-		startsAt.getDay() === 0 || // Shift starts on Sunday
-		startsAt.getDay() === 6 || // Shift starts on Saturday
-		endsAt.getDay() === 0 || // Shift ends on Sunday
-		endsAt.getDay() === 6 // Shift ends on Saturday
-	);
-}
