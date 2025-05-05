@@ -9,6 +9,7 @@ import type {
 } from "../../../server/api/routers/algorithm";
 import { api } from "../../../trpc/react.tsx";
 import { ShiftPanel } from "./shifts-panel.tsx";
+import Loading from "../loading.tsx";
 
 export function Algorithm() {
 	const [nightWeight, setNightWeight] = useState(1);
@@ -129,15 +130,22 @@ export function Algorithm() {
 					<label className="ml-2">Show out of bounds nurses</label>
 				</div>
 			</div>
-			<CaregiverPanel
-				nightWeight={nightWeight}
-				weekendWeight={weekendWeight}
-				distanceWeight={distanceWeight}
-				algorithmType={algorithmType}
-				showMeetsAllNeeds={showMeetsAllNeeds}
-				showPartiallyMeetsNeeds={showPartiallyMeetsNeeds}
-				showOutOfBounds={showOutOfBounds}
-			/>
+			{isLoading || !shifts ? (
+				<div className="mb-96 mt-36">
+					<Loading />
+				</div>
+			) : (
+				<CaregiverPanel
+					shiftId={shifts[0]!.id}
+					nightWeight={nightWeight}
+					weekendWeight={weekendWeight}
+					distanceWeight={distanceWeight}
+					algorithmType={algorithmType}
+					showMeetsAllNeeds={showMeetsAllNeeds}
+					showPartiallyMeetsNeeds={showPartiallyMeetsNeeds}
+					showOutOfBounds={showOutOfBounds}
+				/>
+			)}
 			<div className="mb-6">
 				<input
 					type="checkbox"

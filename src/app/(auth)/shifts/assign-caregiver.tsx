@@ -131,6 +131,7 @@ export function AssignCaregiver({
 
 						<div className="h-96 overflow-y-auto">
 							<CaregiverPanel
+								shiftId={shiftId}
 								nightWeight={nightWeight}
 								weekendWeight={weekendWeight}
 								distanceWeight={distanceWeight}

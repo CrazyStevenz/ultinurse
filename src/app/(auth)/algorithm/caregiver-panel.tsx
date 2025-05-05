@@ -4,6 +4,7 @@ import { api } from "../../../trpc/react.tsx";
 import type { AlgorithmType } from "../../../server/api/routers/algorithm";
 
 export default function CaregiverPanel({
+	shiftId,
 	nightWeight,
 	weekendWeight,
 	distanceWeight,
@@ -13,6 +14,7 @@ export default function CaregiverPanel({
 	showOutOfBounds,
 	assignCaregiver,
 }: {
+	shiftId: number;
 	nightWeight: number;
 	weekendWeight: number;
 	distanceWeight: number;
@@ -23,6 +25,7 @@ export default function CaregiverPanel({
 	assignCaregiver?: (v: number) => void;
 }) {
 	const { data, isLoading, error } = api.algorithm.read.useQuery({
+		shiftId,
 		nightWeight,
 		weekendWeight,
 		distanceWeight,

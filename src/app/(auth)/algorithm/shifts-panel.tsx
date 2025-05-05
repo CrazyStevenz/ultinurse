@@ -1,17 +1,12 @@
 type Shift = {
 	id: number;
 	patientId: number;
-	patientName: string;
 	startsAt: Date;
 	endsAt: Date;
 	isNightShift: boolean;
 	isWeekendShift: boolean;
 	needs: number[];
-	location: {
-		latitude: number;
-		longitude: number;
-	};
-	assignedCaregiver: Caregiver | null;
+	assignedCaregiver?: Caregiver;
 };
 
 type Caregiver = {
@@ -21,10 +16,6 @@ type Caregiver = {
 	distance: number;
 	prefersNights: boolean;
 	prefersWeekends: boolean;
-	location: {
-		latitude: number;
-		longitude: number;
-	};
 };
 
 export function ShiftPanel({

@@ -34,14 +34,8 @@ export const shiftRouter = createTRPCRouter({
 				...result,
 				shift: {
 					...result.shift,
-					isNightShift: isNightShift(
-						result.shift.startsAt,
-						result.shift.endsAt,
-					),
-					isWeekendShift: isWeekendShift(
-						result.shift.startsAt,
-						result.shift.endsAt,
-					),
+					isNightShift: isNightShift(result.shift),
+					isWeekendShift: isWeekendShift(result.shift),
 				},
 			};
 		});
@@ -105,12 +99,18 @@ export const shiftRouter = createTRPCRouter({
 
 // Naive implementation of overlapping hours in a day. Assumes that startAt and
 // endAt are less than 24 hours apart.
-export function isNightShift(startAt: Date, endAt: Date) {
+export function isNightShift({
+	startsAt,
+	endsAt,
+}: {
+	startsAt: Date;
+	endsAt: Date;
+}) {
 	// If endAt hour is smaller than startAt, it includes midnight, so night shift
 	if (
-		startAt.getHours() > endAt.getHours() ||
-		(startAt.getHours() === endAt.getHours() &&
-			startAt.getMinutes() > endAt.getMinutes())
+		startsAt.getHours() > endsAt.getHours() ||
+		(startsAt.getHours() === endsAt.getHours() &&
+			startsAt.getMinutes() > endsAt.getMinutes())
 	) {
 		return true;
 	}
@@ -118,20 +118,26 @@ export function isNightShift(startAt: Date, endAt: Date) {
 	// Since we already handled the edge case above, we can now just check if
 	// either the start or end time is within our night shift timespan.
 	return (
-		startAt.getHours() < 7 ||
-		startAt.getHours() >= 22 ||
-		endAt.getHours() < 7 ||
-		endAt.getHours() >= 22
+		startsAt.getHours() < 7 ||
+		startsAt.getHours() >= 22 ||
+		endsAt.getHours() < 7 ||
+		endsAt.getHours() >= 22
 	);
 }
 
 // Naive implementation to check if any part of a shift happens on the weekend.
 // Assumes that startAt and endAt are less than 24 hours apart.
-export function isWeekendShift(startAt: Date, endAt: Date) {
+export function isWeekendShift({
+	startsAt,
+	endsAt,
+}: {
+	startsAt: Date;
+	endsAt: Date;
+}) {
 	return (
-		startAt.getDay() === 0 || // Shift starts on Sunday
-		startAt.getDay() === 6 || // Shift starts on Saturday
-		endAt.getDay() === 0 || // Shift ends on Sunday
-		endAt.getDay() === 6 // Shift ends on Saturday
+		startsAt.getDay() === 0 || // Shift starts on Sunday
+		startsAt.getDay() === 6 || // Shift starts on Saturday
+		endsAt.getDay() === 0 || // Shift ends on Sunday
+		endsAt.getDay() === 6 // Shift ends on Saturday
 	);
 }
