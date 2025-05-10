@@ -25,7 +25,7 @@ export function CreatePatient() {
 	const [open, setOpen] = useState(false);
 	const [name, setName] = useState("");
 	const [position, setPosition] = useState<LatLng | null>(null);
-	const [positionError, setPositionError] = useState(false);
+	const [error, setError] = useState("");
 
 	const utils = api.useUtils();
 
@@ -48,17 +48,19 @@ export function CreatePatient() {
 				<form
 					onSubmit={(e) => {
 						e.preventDefault();
-						if (!position) {
-							setPositionError(true);
-						} else {
-							createPatient.mutate(
-								{
-									name,
-									location: [position.lat, position.lng],
-								},
-								{ onSuccess: () => setOpen(false) },
-							);
+
+						if (!name) {
+							return setError("Patient name cannot be empty.");
 						}
+
+						if (!position) {
+							return setError("You must select a position on the map.");
+						}
+
+						createPatient.mutate(
+							{ name, location: [position.lat, position.lng] },
+							{ onSuccess: () => setOpen(false) },
+						);
 					}}
 				>
 					<DialogDescription hidden>
@@ -71,6 +73,7 @@ export function CreatePatient() {
 							placeholder="Patient's name..."
 							value={name}
 							onChange={(e) => setName(e.target.value)}
+							onClick={() => setError("")}
 							className="w-full rounded-full px-4 py-2 text-black"
 						/>
 					</span>
@@ -80,15 +83,11 @@ export function CreatePatient() {
 						<Map
 							position={position}
 							setPosition={(v) => {
-								setPositionError(false);
+								setError("");
 								setPosition(v);
 							}}
 						/>
-						{positionError && (
-							<span className="text-red-500">
-								You must select a position on the map.
-							</span>
-						)}
+						{error && <span className="text-red-500">{error}</span>}
 					</span>
 
 					<DialogFooter className="mt-5">
