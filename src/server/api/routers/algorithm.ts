@@ -8,7 +8,15 @@ import { calculateHaversineDistance } from "../utils/calculate-haversine-distanc
 
 const SOFT_DISTANCE = 5;
 const HARD_DISTANCE = 8;
-
+const EMPTY_CAREGIVER: Caregiver = {
+	id: 0,
+	name: "—",
+	skills: [1],
+	distance: 0,
+	prefersNights: true,
+	prefersWeekends: true,
+	location: [1, 1],
+};
 const AlgorithmType = {
 	MCDM: "MCDM",
 	GREEDY: "GREEDY",
@@ -47,7 +55,7 @@ type Shift = {
 		name: string;
 		location: [number, number];
 	};
-	assignedCaregiver?: Caregiver;
+	assignedCaregiver: Caregiver;
 };
 
 const MOCK_SHIFTS: Shift[] = [
@@ -61,6 +69,7 @@ const MOCK_SHIFTS: Shift[] = [
 			name: "Mock patient 1",
 			location: [40.595312, 22.946153],
 		},
+		assignedCaregiver: EMPTY_CAREGIVER,
 	},
 	{
 		id: 2,
@@ -72,6 +81,7 @@ const MOCK_SHIFTS: Shift[] = [
 			name: "Mock patient 2",
 			location: [40.694887, 22.947355],
 		},
+		assignedCaregiver: EMPTY_CAREGIVER,
 	},
 	{
 		id: 3,
@@ -83,6 +93,7 @@ const MOCK_SHIFTS: Shift[] = [
 			name: "Mock patient 3",
 			location: [40.611505, 22.947786],
 		},
+		assignedCaregiver: EMPTY_CAREGIVER,
 	},
 	{
 		id: 4,
@@ -94,6 +105,7 @@ const MOCK_SHIFTS: Shift[] = [
 			name: "Mock patient 4",
 			location: [40.635793, 22.94806],
 		},
+		assignedCaregiver: EMPTY_CAREGIVER,
 	},
 	{
 		id: 5,
@@ -105,6 +117,7 @@ const MOCK_SHIFTS: Shift[] = [
 			name: "Mock patient 5",
 			location: [40.550989, 22.947228],
 		},
+		assignedCaregiver: EMPTY_CAREGIVER,
 	},
 ];
 
@@ -241,7 +254,7 @@ function calculateFitScoreGreedy(
 	};
 }
 
-function assignCaregiversWithKnapsack(
+export function assignCaregiversWithKnapsack(
 	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
@@ -385,17 +398,27 @@ function getNursesSortedByFit(
 	}
 }
 
-function assignCaregiversToShifts(
+export function assignCaregiversToShifts(
 	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
 	globalAlgorithmType: GlobalAlgorithmType,
-) {
+): { shiftId: number; caregiverId: number | null }[] {
 	const assignedCaregivers = new Set<number>();
 
 	if (globalAlgorithmType === "KNAPSACK") {
-		return assignCaregiversWithKnapsack(shifts, caregivers, weights);
+		// You would need to modify assignCaregiversWithKnapsack similarly
+		const knapsackAssignments = assignCaregiversWithKnapsack(
+			shifts,
+			caregivers,
+			weights,
+		);
+
+		return knapsackAssignments.map((shift) => ({
+			shiftId: shift.id,
+			caregiverId: shift.assignedCaregiver?.id ?? null,
+		}));
 	}
 
 	return shifts.map((shift) => {
@@ -430,10 +453,8 @@ function assignCaregiversToShifts(
 		}
 
 		return {
-			...shift,
-			isNightShift: isNightShift(shift),
-			isWeekendShift: isWeekendShift(shift),
-			assignedCaregiver: bestCaregiver,
+			shiftId: shift.id,
+			caregiverId: bestCaregiver?.id ?? null,
 		};
 	});
 }
@@ -522,7 +543,7 @@ export const algorithmRouter = createTRPCRouter({
 				globalAlgorithmType: z.nativeEnum(GlobalAlgorithmType),
 			}),
 		)
-		.query(async ({ ctx, input }) => {
+		.mutation(async ({ ctx, input }) => {
 			const caregiversWithLocation = await ctx.db.select().from(caregivers);
 
 			const baseCaregivers = caregiversWithLocation.map((cg) => {
@@ -555,6 +576,7 @@ export const algorithmRouter = createTRPCRouter({
 				isNightShift: isNightShift(shift),
 				isWeekendShift: isWeekendShift(shift),
 				needs: [1, 2, 3],
+				assignedCaregiver: EMPTY_CAREGIVER,
 			}));
 
 			const weights = {
@@ -562,21 +584,23 @@ export const algorithmRouter = createTRPCRouter({
 				weekendWeight: input.weekendWeight,
 				distanceWeight: input.distanceWeight,
 			};
+			const assignedShifts =
+				// input.globalAlgorithmType === "KNAPSACK" ?
+				assignCaregiversWithKnapsack(computedShifts, baseCaregivers, weights);
+			// : assignCaregiversToShifts(
+			// 	computedShifts,
+			// 	baseCaregivers,
+			// 	weights,
+			// 	input.algorithmType,
+			// 	input.globalAlgorithmType,
+			// )
 
-			if (input.globalAlgorithmType === "KNAPSACK") {
-				return assignCaregiversWithKnapsack(
-					computedShifts,
-					baseCaregivers,
-					weights,
-				);
+			for (const assignedShift of assignedShifts) {
+				await ctx.db
+					.update(shifts)
+					.set({ caregiverId: assignedShift.assignedCaregiver.id })
+					.where(eq(shifts.id, assignedShift.id))
+					.returning({ id: shifts.id });
 			}
-
-			return assignCaregiversToShifts(
-				MOCK_SHIFTS,
-				baseCaregivers,
-				weights,
-				input.algorithmType,
-				input.globalAlgorithmType,
-			);
 		}),
 });
