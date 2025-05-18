@@ -15,15 +15,13 @@ export const metadata: Metadata = {
 
 async function ShiftsContent() {
 	const session = await auth();
-	if (!session) {
-		redirect("/");
-	}
+	if (!session) redirect("/");
 
 	return (
 		<>
-			<div className="flex justify-between py-4">
+			<div className="flex flex-col justify-between py-4 sm:flex-row">
 				<span className="text-3xl font-semibold">Shifts</span>
-				<div className="flex space-x-2">
+				<div className="mt-2 space-x-2 sm:mt-0 sm:flex-row">
 					<UnassignAllShifts />
 					<BulkAssignCaregiver />
 					<CreateShift />
