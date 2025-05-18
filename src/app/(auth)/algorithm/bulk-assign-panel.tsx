@@ -38,7 +38,7 @@ export function BulkAssignCaregiver() {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button className="dark:bg-sky-400 dark:hover:bg-sky-500">
+				<Button className="dark:bg-emerald-400 dark:hover:bg-emerald-500">
 					Bulk assign
 				</Button>
 			</DialogTrigger>
