@@ -171,7 +171,7 @@ export function CreateShift() {
 						/>
 					</div>
 
-					<h3 className="mb-2 font-bold">Skills:</h3>
+					<h3 className="mb-2 font-semibold">Skills:</h3>
 					{Object.entries(Skills).map((entry) => {
 						const skillId = parseInt(entry[0]);
 						const skillName = entry[1];
