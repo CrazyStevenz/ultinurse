@@ -13,7 +13,7 @@ export function Toggle({
 		<TogglePrimitive
 			data-slot="toggle"
 			className={cn(
-				"hover:bg-muted hover:text-muted-foreground data-[state=on]:text-accent-foreground focus-visible:border-ring focus-visible:ring-ring/50 dark:aria-invalid:ring-destructive/40 border-input hover:text-accent-foreground inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md border border-neutral-700 bg-transparent px-2 font-medium hover:border-green-800 hover:bg-green-800 data-[state=on]:border-green-700 data-[state=on]:bg-green-700",
+				"border-input hover:text-accent-foreground inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md border border-neutral-700 bg-transparent px-2 font-medium transition hover:border-green-800 hover:bg-green-800 data-[state=on]:border-green-700 data-[state=on]:bg-green-700",
 				className,
 			)}
 			{...props}
