@@ -114,6 +114,10 @@ export const shifts = pgTable(
 			.notNull()
 			.references(() => patients.id),
 		caregiverId: integer().references(() => caregivers.id),
+		skills: integer()
+			.array()
+			.notNull()
+			.default(sql`ARRAY[]::integer[]`),
 		startsAt: timestamp({ withTimezone: true }).notNull(),
 		endsAt: timestamp({ withTimezone: true }).notNull(),
 		...timestamps,

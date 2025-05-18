@@ -13,6 +13,7 @@ export const shiftRouter = createTRPCRouter({
 				patientId: z.number(),
 				startsAt: z.date(),
 				endsAt: z.date(),
+				skills: z.set(z.number()),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -20,6 +21,7 @@ export const shiftRouter = createTRPCRouter({
 				patientId: input.patientId,
 				startsAt: input.startsAt,
 				endsAt: input.endsAt,
+				skills: Array.from(input.skills),
 			});
 		}),
 
