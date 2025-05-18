@@ -8,6 +8,7 @@ import { calculateHaversineDistance } from "../utils/calculate-haversine-distanc
 
 const SOFT_DISTANCE = 5;
 const HARD_DISTANCE = 8;
+
 const AlgorithmType = {
 	MCDM: "MCDM",
 	GREEDY: "GREEDY",
@@ -398,7 +399,7 @@ function assignCaregiversToShifts(
 	weights: Weights,
 	algorithmType: AlgorithmType,
 	globalAlgorithmType: GlobalAlgorithmType,
-): { shiftId: number; caregiverId: number | null }[] {
+) {
 	const assignedCaregivers = new Set<number>();
 
 	if (globalAlgorithmType === "KNAPSACK") {
@@ -517,7 +518,7 @@ export const algorithmRouter = createTRPCRouter({
 
 			const time = performance.now() * 1000;
 			const caregiverData = getNursesSortedByFit(
-				{ ...shift, patient, needs: [1, 2, 3] },
+				{ ...shift, patient, needs: [1] },
 				caregiversWithDistance,
 				weights,
 				input.algorithmType,
@@ -557,7 +558,7 @@ export const algorithmRouter = createTRPCRouter({
 				},
 				isNightShift: isNightShift(shift),
 				isWeekendShift: isWeekendShift(shift),
-				needs: [1, 2, 3],
+				needs: [1],
 			}));
 
 			const weights = {
