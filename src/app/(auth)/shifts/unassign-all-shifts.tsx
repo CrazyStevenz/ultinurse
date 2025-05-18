@@ -17,7 +17,7 @@ export function UnassignAllShifts() {
 			disabled={isPending}
 			className="dark:bg-amber-400 dark:hover:bg-amber-500"
 		>
-			Unassign all shifts
+			Unassign shifts
 			{isPending && <LoadingIndicator small />}
 		</Button>
 	);
