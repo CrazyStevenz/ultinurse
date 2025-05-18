@@ -21,6 +21,7 @@ export const shiftRouter = createTRPCRouter({
 				patientId: input.patientId,
 				startsAt: input.startsAt,
 				endsAt: input.endsAt,
+				skills: Array.from(input.skills),
 			});
 		}),
 

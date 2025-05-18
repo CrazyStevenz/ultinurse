@@ -1,0 +1,1 @@
+ALTER TABLE "shift" ADD COLUMN "skills" integer[] DEFAULT ARRAY[]::integer[] NOT NULL;
