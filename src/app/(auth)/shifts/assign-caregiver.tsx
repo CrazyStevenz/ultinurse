@@ -107,7 +107,8 @@ export function AssignCaregiver({
 									className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-800 to-green-500"
 								/>
 							</div>
-							<div className="mt-2">
+
+							<div className="mt-4">
 								<div className="flex flex-row">
 									<h3 className="mb-2 font-semibold">Weekend Shift Weight:</h3>
 									&nbsp;{weekendWeight}
@@ -121,7 +122,8 @@ export function AssignCaregiver({
 									className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-800 to-green-500"
 								/>
 							</div>
-							<div className="mt-2">
+
+							<div className="mt-4">
 								<div className="flex flex-row">
 									<h3 className="mb-2 font-semibold">Distance Shift Weight:</h3>
 									&nbsp;{distanceWeight}
@@ -137,7 +139,7 @@ export function AssignCaregiver({
 							</div>
 						</div>
 
-						<div className="h-96 overflow-y-auto">
+						<div className="mt-2 h-96 overflow-y-auto">
 							<CaregiverPanel
 								shiftId={shiftId}
 								nightWeight={nightWeight}
@@ -154,7 +156,7 @@ export function AssignCaregiver({
 						</div>
 					</>
 				) : (
-					<div className="flex h-[42.5rem] flex-col items-center">
+					<div className="flex h-[44.25rem] flex-col items-center">
 						<div className="mt-56 font-semibold">Saving...</div>
 						<Loading />
 					</div>

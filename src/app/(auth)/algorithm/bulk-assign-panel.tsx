@@ -14,6 +14,7 @@ import { Button } from "../../_components/ui/button.tsx";
 import type { AlgorithmType } from "../../../server/api/routers/algorithm";
 import { api } from "../../../trpc/react";
 import Loading from "../loading.tsx";
+import { Toggle } from "../../_components/ui/toggle";
 
 export function BulkAssignCaregiver() {
 	const [open, setOpen] = useState(false);
@@ -53,70 +54,82 @@ export function BulkAssignCaregiver() {
 				{!isPending ? (
 					<>
 						<div className="mt-4">
-							<label className="mb-2 block">Algorithm Type:</label>
-							<select
-								value={algorithmType}
-								onChange={(e) =>
-									setAlgorithmType(e.target.value as AlgorithmType)
-								}
-								className="h-10 w-full rounded-md bg-neutral-900 px-4 py-2 text-neutral-50 ring-offset-white transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:ring-offset-neutral-950 dark:hover:bg-neutral-50/90 dark:focus-visible:ring-neutral-300 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0"
-							>
-								<option value="MCDM">MCDM Algorithm</option>
-								<option value="GREEDY">Greedy Algorithm</option>
-							</select>
-							<div className="mt-4">
-								<label className="mb-2 block">Global Algorithm Type:</label>
-								<select
-									value={globalAlgorithmType}
-									onChange={(e) =>
-										setGlobalAlgorithmType(
-											e.target.value as "NONE" | "KNAPSACK",
-										)
-									}
-									className="h-10 w-full rounded-md bg-neutral-900 px-4 py-2 text-neutral-50 ring-offset-white transition-colors hover:bg-neutral-900/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900 dark:ring-offset-neutral-950 dark:hover:bg-neutral-50/90 dark:focus-visible:ring-neutral-300"
+							<h3 className="mb-2 font-semibold">Algorithm Type:</h3>
+							<div className="space-x-2">
+								<Toggle
+									pressed={algorithmType === "MCDM"}
+									onPressedChange={() => setAlgorithmType("MCDM")}
 								>
-									<option value="NONE">NONE</option>
-									<option value="KNAPSACK">KNAPSACK</option>
-								</select>
+									MCDM
+								</Toggle>
+								<Toggle
+									pressed={algorithmType === "GREEDY"}
+									onPressedChange={() => setAlgorithmType("GREEDY")}
+								>
+									Greedy
+								</Toggle>
+							</div>
+
+							<h3 className="mb-2 mt-4 font-semibold">
+								Global Algorithm Type:
+							</h3>
+							<div className="space-x-2">
+								<Toggle
+									pressed={globalAlgorithmType === "NONE"}
+									onPressedChange={() => setGlobalAlgorithmType("NONE")}
+								>
+									None
+								</Toggle>
+								<Toggle
+									pressed={globalAlgorithmType === "KNAPSACK"}
+									onPressedChange={() => setGlobalAlgorithmType("KNAPSACK")}
+								>
+									Knapsack
+								</Toggle>
 							</div>
 
 							<div className="mt-4">
-								<label className="mb-2 block">
-									Night Shift Weight: {nightWeight}
-								</label>
+								<div className="flex flex-row">
+									<h3 className="mb-2 font-semibold">Night Shift Weight:</h3>
+									&nbsp;{nightWeight}
+								</div>
 								<input
 									type="range"
 									min="0"
 									max="5"
 									value={nightWeight}
 									onChange={(e) => setNightWeight(Number(e.target.value))}
-									className="w-full"
+									className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-800 to-green-500"
 								/>
 							</div>
-							<div className="mt-2">
-								<label className="mb-2 block">
-									Weekend Shift Weight: {weekendWeight}
-								</label>
+
+							<div className="mt-4">
+								<div className="flex flex-row">
+									<h3 className="mb-2 font-semibold">Weekend Shift Weight:</h3>
+									&nbsp;{weekendWeight}
+								</div>
 								<input
 									type="range"
 									min="0"
 									max="5"
 									value={weekendWeight}
 									onChange={(e) => setWeekendWeight(Number(e.target.value))}
-									className="w-full"
+									className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-800 to-green-500"
 								/>
 							</div>
-							<div className="mt-2">
-								<label className="mb-2 block">
-									Distance Weight: {distanceWeight}
-								</label>
+
+							<div className="mt-4">
+								<div className="flex flex-row">
+									<h3 className="mb-2 font-semibold">Distance Shift Weight:</h3>
+									&nbsp;{distanceWeight}
+								</div>
 								<input
 									type="range"
 									min="0"
 									max="5"
 									value={distanceWeight}
 									onChange={(e) => setDistanceWeight(Number(e.target.value))}
-									className="w-full"
+									className="h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-gradient-to-r from-neutral-800 to-green-500"
 								/>
 							</div>
 						</div>
