@@ -23,9 +23,11 @@ async function ShiftsContent() {
 		<>
 			<div className="flex justify-between py-4">
 				<span className="text-3xl font-semibold">Shifts</span>
-				<CreateShift />
-				<BulkAssignCaregiver />
-				<UnassignAllShifts />
+				<div className="flex space-x-2">
+					<UnassignAllShifts />
+					<BulkAssignCaregiver />
+					<CreateShift />
+				</div>
 			</div>
 			<div className="flex flex-col overflow-x-auto rounded-xl border border-white/25">
 				<table className="w-auto table-fixed text-left">

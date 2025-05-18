@@ -11,10 +11,7 @@ import {
 	DialogTrigger,
 } from "../../_components/ui/dialog.tsx";
 import { Button } from "../../_components/ui/button.tsx";
-import type {
-	AlgorithmType,
-	GlobalAlgorithmType,
-} from "../../../server/api/routers/algorithm";
+import type { AlgorithmType } from "../../../server/api/routers/algorithm";
 import { api } from "../../../trpc/react";
 import Loading from "../loading.tsx";
 
@@ -32,7 +29,7 @@ export function BulkAssignCaregiver() {
 
 	const { mutate, isPending } = api.algorithm.getShifts.useMutation({
 		onSuccess: async () => {
-			await utils.shift.read.invalidate();
+			await utils.shift.invalidate();
 			setOpen(false);
 		},
 	});
@@ -40,17 +37,17 @@ export function BulkAssignCaregiver() {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button rounded size="sm">
-					<span className="text-xl">+</span>
+				<Button className="dark:bg-sky-400 dark:hover:bg-sky-500">
+					Bulk assign
 				</Button>
 			</DialogTrigger>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Assign caregiver</DialogTitle>
+					<DialogTitle>Bulk assign caregivers</DialogTitle>
 				</DialogHeader>
 
 				<DialogDescription>
-					Choose a caregiver to work this shift.
+					All caregivers will be assigned to an available shift
 				</DialogDescription>
 
 				{!isPending ? (
@@ -124,10 +121,6 @@ export function BulkAssignCaregiver() {
 							</div>
 						</div>
 
-						<div className="h-96 overflow-y-auto">
-							{/* Any additional content like caregiver previews or recommendations can go here */}
-						</div>
-
 						<div className="mt-4 flex justify-end">
 							<Button
 								onClick={() =>
@@ -139,9 +132,8 @@ export function BulkAssignCaregiver() {
 										globalAlgorithmType,
 									})
 								}
-								disabled={isPending}
 							>
-								Run Assignment
+								Save
 							</Button>
 						</div>
 					</>

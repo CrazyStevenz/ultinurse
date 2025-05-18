@@ -8,15 +8,6 @@ import { calculateHaversineDistance } from "../utils/calculate-haversine-distanc
 
 const SOFT_DISTANCE = 5;
 const HARD_DISTANCE = 8;
-const EMPTY_CAREGIVER: Caregiver = {
-	id: 0,
-	name: "—",
-	skills: [1],
-	distance: 0,
-	prefersNights: true,
-	prefersWeekends: true,
-	location: [1, 1],
-};
 const AlgorithmType = {
 	MCDM: "MCDM",
 	GREEDY: "GREEDY",
@@ -39,7 +30,6 @@ export type Caregiver = {
 	id: number;
 	name: string;
 	skills: number[];
-	distance: number;
 	prefersNights: boolean;
 	prefersWeekends: boolean;
 	location: [number, number];
@@ -55,7 +45,7 @@ type Shift = {
 		name: string;
 		location: [number, number];
 	};
-	assignedCaregiver: Caregiver;
+	assignedCaregiver?: Caregiver;
 };
 
 const MOCK_SHIFTS: Shift[] = [
@@ -69,7 +59,6 @@ const MOCK_SHIFTS: Shift[] = [
 			name: "Mock patient 1",
 			location: [40.595312, 22.946153],
 		},
-		assignedCaregiver: EMPTY_CAREGIVER,
 	},
 	{
 		id: 2,
@@ -81,7 +70,6 @@ const MOCK_SHIFTS: Shift[] = [
 			name: "Mock patient 2",
 			location: [40.694887, 22.947355],
 		},
-		assignedCaregiver: EMPTY_CAREGIVER,
 	},
 	{
 		id: 3,
@@ -93,7 +81,6 @@ const MOCK_SHIFTS: Shift[] = [
 			name: "Mock patient 3",
 			location: [40.611505, 22.947786],
 		},
-		assignedCaregiver: EMPTY_CAREGIVER,
 	},
 	{
 		id: 4,
@@ -105,7 +92,6 @@ const MOCK_SHIFTS: Shift[] = [
 			name: "Mock patient 4",
 			location: [40.635793, 22.94806],
 		},
-		assignedCaregiver: EMPTY_CAREGIVER,
 	},
 	{
 		id: 5,
@@ -117,7 +103,6 @@ const MOCK_SHIFTS: Shift[] = [
 			name: "Mock patient 5",
 			location: [40.550989, 22.947228],
 		},
-		assignedCaregiver: EMPTY_CAREGIVER,
 	},
 ];
 
@@ -180,11 +165,15 @@ function calculateFitScoreMCDM(
 	let optimalDistance = false;
 	let outOfBounds = false;
 
-	if (caregiver.distance < SOFT_DISTANCE) {
+	const distance = calculateHaversineDistance(
+		caregiver.location,
+		shift.patient.location,
+	);
+	if (distance < SOFT_DISTANCE) {
 		score += 10;
 		optimalDistance = true;
-	} else if (caregiver.distance <= HARD_DISTANCE) {
-		score -= (caregiver.distance - SOFT_DISTANCE) * weights.distanceWeight;
+	} else if (distance <= HARD_DISTANCE) {
+		score -= (distance - SOFT_DISTANCE) * weights.distanceWeight;
 	} else {
 		score -= 100;
 		outOfBounds = true;
@@ -204,7 +193,7 @@ function calculateFitScoreMCDM(
 		id: caregiver.id,
 		name: caregiver.name,
 		score,
-		distance: caregiver.distance,
+		distance,
 		meetsAllNeeds: caregiver.skills.some((c) => shift.needs.includes(c)),
 		outOfBounds,
 		optimalDistance,
@@ -219,16 +208,21 @@ function calculateFitScoreGreedy(
 	shift: Shift,
 	weights: Weights,
 ): Omit<NurseData, "percentage"> {
-	const outOfBounds = caregiver.distance > HARD_DISTANCE;
-	const optimalDistance = caregiver.distance < SOFT_DISTANCE;
+	const distance = calculateHaversineDistance(
+		caregiver.location,
+		shift.patient.location,
+	);
+
+	const outOfBounds = distance > HARD_DISTANCE;
+	const optimalDistance = distance < SOFT_DISTANCE;
 	const nightShiftEligible = caregiver.prefersNights;
 	const weekendShiftEligible = caregiver.prefersWeekends;
 
 	let score = 0;
 
-	if (caregiver.distance < SOFT_DISTANCE) {
+	if (distance < SOFT_DISTANCE) {
 		score += 10;
-	} else if (caregiver.distance <= HARD_DISTANCE) {
+	} else if (distance <= HARD_DISTANCE) {
 		score += 5;
 	} else {
 		score -= 10;
@@ -245,7 +239,7 @@ function calculateFitScoreGreedy(
 		id: caregiver.id,
 		name: caregiver.name,
 		score,
-		distance: caregiver.distance,
+		distance,
 		meetsAllNeeds: caregiver.skills.every((c) => shift.needs.includes(c)),
 		outOfBounds,
 		optimalDistance,
@@ -254,7 +248,7 @@ function calculateFitScoreGreedy(
 	};
 }
 
-export function assignCaregiversWithKnapsack(
+function assignCaregiversWithKnapsack(
 	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
@@ -398,7 +392,7 @@ function getNursesSortedByFit(
 	}
 }
 
-export function assignCaregiversToShifts(
+function assignCaregiversToShifts(
 	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
@@ -523,7 +517,7 @@ export const algorithmRouter = createTRPCRouter({
 
 			const time = performance.now() * 1000;
 			const caregiverData = getNursesSortedByFit(
-				{ ...shift, patient, needs: MOCK_SHIFTS[0]!.needs },
+				{ ...shift, patient, needs: [1, 2, 3] },
 				caregiversWithDistance,
 				weights,
 				input.algorithmType,
@@ -544,26 +538,14 @@ export const algorithmRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
-			const caregiversWithLocation = await ctx.db.select().from(caregivers);
+			const caregiversFromDB = await ctx.db.select().from(caregivers);
 
-			const baseCaregivers = caregiversWithLocation.map((cg) => {
-				return {
-					id: cg.id,
-					name: cg.name,
-					prefersNights: cg.prefersNights,
-					prefersWeekends: cg.prefersWeekends,
-					skills: cg.skills,
-					location: cg.location,
-					distance: 0,
-				};
-			});
-
-			const shiftsFromDb = await ctx.db
+			const shiftsFromDB = await ctx.db
 				.select()
 				.from(shifts)
 				.leftJoin(patients, eq(shifts.patientId, patients.id));
 
-			const computedShifts = shiftsFromDb.map(({ shift, patient }) => ({
+			const computedShifts = shiftsFromDB.map(({ shift, patient }) => ({
 				id: shift.id,
 				patientId: shift.patientId,
 				startsAt: new Date(shift.startsAt),
@@ -576,7 +558,6 @@ export const algorithmRouter = createTRPCRouter({
 				isNightShift: isNightShift(shift),
 				isWeekendShift: isWeekendShift(shift),
 				needs: [1, 2, 3],
-				assignedCaregiver: EMPTY_CAREGIVER,
 			}));
 
 			const weights = {
@@ -586,7 +567,7 @@ export const algorithmRouter = createTRPCRouter({
 			};
 			const assignedShifts =
 				// input.globalAlgorithmType === "KNAPSACK" ?
-				assignCaregiversWithKnapsack(computedShifts, baseCaregivers, weights);
+				assignCaregiversWithKnapsack(computedShifts, caregiversFromDB, weights);
 			// : assignCaregiversToShifts(
 			// 	computedShifts,
 			// 	baseCaregivers,
@@ -598,9 +579,8 @@ export const algorithmRouter = createTRPCRouter({
 			for (const assignedShift of assignedShifts) {
 				await ctx.db
 					.update(shifts)
-					.set({ caregiverId: assignedShift.assignedCaregiver.id })
-					.where(eq(shifts.id, assignedShift.id))
-					.returning({ id: shifts.id });
+					.set({ caregiverId: assignedShift.assignedCaregiver?.id })
+					.where(eq(shifts.id, assignedShift.id));
 			}
 		}),
 });

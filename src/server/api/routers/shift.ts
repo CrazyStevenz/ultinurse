@@ -5,11 +5,6 @@ import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 import { caregivers, patients, shifts } from "../../db/schema.ts";
 import { isWeekendShift } from "../utils/is-weekend-shift";
 import { isNightShift } from "../utils/is-night-shift.ts";
-import {
-	type AlgorithmType,
-	assignCaregiversToShifts,
-	type GlobalAlgorithmType,
-} from "./algorithm";
 
 export const shiftRouter = createTRPCRouter({
 	create: protectedProcedure
@@ -103,7 +98,7 @@ export const shiftRouter = createTRPCRouter({
 		await ctx.db.insert(shifts).values(shiftsToInsert);
 	}),
 
-	clearAssignments: protectedProcedure.mutation(async ({ ctx }) => {
+	deleteAllAssignments: protectedProcedure.mutation(async ({ ctx }) => {
 		const results = await ctx.db.select().from(shifts);
 
 		for (const result of results) {
