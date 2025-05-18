@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LogIn, LogOut } from "lucide-react";
 
 import { Navigation } from "./top-nav-links.tsx";
-import { auth } from "../../../server/auth/index.ts";
+import { auth } from "../../../server/auth";
 
 export async function TopNav() {
 	const session = await auth();
@@ -31,18 +31,18 @@ export async function TopNav() {
 					{session ? (
 						<Link
 							href="/api/auth/signout"
-							className="rounded-full bg-red-600 px-5 py-2 font-semibold text-white no-underline transition hover:bg-red-500"
+							className="rounded-full bg-red-500/75 px-4 py-1.5 text-white no-underline transition hover:bg-red-500/85"
 						>
-							<LogOut className="mb-1 inline-flex h-6 w-6 dark:group-hover:text-red-600" />{" "}
-							Sign out
+							<LogOut className="mb-1 inline-flex h-5 w-6 dark:group-hover:text-red-600" />{" "}
+							Logout
 						</Link>
 					) : (
 						<Link
 							href="/api/auth/signin"
-							className="rounded-full bg-green-600 px-5 py-2 font-semibold text-white no-underline transition hover:bg-green-500"
+							className="rounded-full bg-green-500/75 px-4 py-1.5 text-white no-underline transition hover:bg-green-500/85"
 						>
-							<LogIn className="mb-1 inline-flex h-6 w-6 dark:group-hover:text-green-600" />{" "}
-							Sign in
+							<LogIn className="mb-1 inline-flex h-5 w-6 dark:group-hover:text-green-600" />{" "}
+							Login
 						</Link>
 					)}
 				</div>
