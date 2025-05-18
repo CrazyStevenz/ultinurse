@@ -13,9 +13,7 @@ export const metadata: Metadata = {
 
 async function PatientsContent() {
 	const session = await auth();
-	if (!session) {
-		redirect("/");
-	}
+	if (!session) redirect("/");
 
 	return (
 		<>

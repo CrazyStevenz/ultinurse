@@ -7,9 +7,7 @@ import { Algorithm } from "./algorithm";
 
 async function AlgorithmContent() {
 	const session = await auth();
-	if (!session) {
-		redirect("/");
-	}
+	if (!session) redirect("/");
 
 	return <Algorithm />;
 }
