@@ -101,16 +101,7 @@ export const shiftRouter = createTRPCRouter({
 	}),
 
 	deleteAllAssignments: protectedProcedure.mutation(async ({ ctx }) => {
-		const results = await ctx.db.select().from(shifts);
-
-		for (const result of results) {
-			await ctx.db
-				.update(shifts)
-				.set({
-					caregiverId: null,
-				})
-				.where(eq(shifts.id, result.id))
-				.returning({ id: shifts.id });
-		}
+		// eslint-disable-next-line drizzle/enforce-update-with-where
+		await ctx.db.update(shifts).set({ caregiverId: null });
 	}),
 });
