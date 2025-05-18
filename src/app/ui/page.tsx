@@ -6,41 +6,19 @@ export default function UIKitPage() {
 			<div className="flex flex-row items-center gap-5">
 				<span className="font-bold">Square Buttons:</span>
 				<Button variant="default">Button</Button>
-				<Button variant="destructive">Button</Button>
-				<Button variant="secondary">Button</Button>
-				<Button variant="ghost">Button</Button>
-				<Button variant="link">Button</Button>
 			</div>
 			<div className="mt-5 flex flex-row items-center gap-5">
 				<span className="font-bold">Rounded Buttons:</span>
 				<Button variant="default" rounded>
 					Button
 				</Button>
-				<Button variant="destructive" rounded>
-					Button
-				</Button>
-				<Button variant="secondary" rounded>
-					Button
-				</Button>
-				<Button variant="ghost" rounded>
-					Button
-				</Button>
-				<Button variant="link" rounded>
-					Button
-				</Button>
 			</div>
 			<div className="mt-5 flex flex-row items-center gap-5">
 				<span className="font-bold">Button size:</span>
-				<Button variant="default" size="icon">
-					B
-				</Button>
 				<Button variant="default" size="sm">
 					Button
 				</Button>
 				<Button variant="default" size="default">
-					Button
-				</Button>
-				<Button variant="default" size="lg">
 					Button
 				</Button>
 			</div>

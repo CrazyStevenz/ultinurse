@@ -99,4 +99,9 @@ export const shiftRouter = createTRPCRouter({
 
 		await ctx.db.insert(shifts).values(shiftsToInsert);
 	}),
+
+	deleteAllAssignments: protectedProcedure.mutation(async ({ ctx }) => {
+		// eslint-disable-next-line drizzle/enforce-update-with-where
+		await ctx.db.update(shifts).set({ caregiverId: null });
+	}),
 });

@@ -6,6 +6,8 @@ import { CreateShift } from "./create-shift.tsx";
 import Loading from "../loading";
 import { auth } from "../../../server/auth";
 import { redirect } from "next/navigation";
+import { BulkAssignCaregiver } from "../algorithm/bulk-assign-panel";
+import { UnassignAllShifts } from "./unassign-all-shifts";
 
 export const metadata: Metadata = {
 	title: "Shifts - UltiNurse",
@@ -21,7 +23,11 @@ async function ShiftsContent() {
 		<>
 			<div className="flex justify-between py-4">
 				<span className="text-3xl font-semibold">Shifts</span>
-				<CreateShift />
+				<div className="flex space-x-2">
+					<UnassignAllShifts />
+					<BulkAssignCaregiver />
+					<CreateShift />
+				</div>
 			</div>
 			<div className="flex flex-col overflow-x-auto rounded-xl border border-white/25">
 				<table className="w-auto table-fixed text-left">

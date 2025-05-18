@@ -31,7 +31,6 @@ export type Caregiver = {
 	id: number;
 	name: string;
 	skills: number[];
-	distance: number;
 	prefersNights: boolean;
 	prefersWeekends: boolean;
 	location: [number, number];
@@ -167,11 +166,15 @@ function calculateFitScoreMCDM(
 	let optimalDistance = false;
 	let outOfBounds = false;
 
-	if (caregiver.distance < SOFT_DISTANCE) {
+	const distance = calculateHaversineDistance(
+		caregiver.location,
+		shift.patient.location,
+	);
+	if (distance < SOFT_DISTANCE) {
 		score += 10;
 		optimalDistance = true;
-	} else if (caregiver.distance <= HARD_DISTANCE) {
-		score -= (caregiver.distance - SOFT_DISTANCE) * weights.distanceWeight;
+	} else if (distance <= HARD_DISTANCE) {
+		score -= (distance - SOFT_DISTANCE) * weights.distanceWeight;
 	} else {
 		score -= 100;
 		outOfBounds = true;
@@ -191,7 +194,7 @@ function calculateFitScoreMCDM(
 		id: caregiver.id,
 		name: caregiver.name,
 		score,
-		distance: caregiver.distance,
+		distance,
 		meetsAllNeeds: caregiver.skills.some((c) => shift.needs.includes(c)),
 		outOfBounds,
 		optimalDistance,
@@ -206,16 +209,21 @@ function calculateFitScoreGreedy(
 	shift: Shift,
 	weights: Weights,
 ): Omit<NurseData, "percentage"> {
-	const outOfBounds = caregiver.distance > HARD_DISTANCE;
-	const optimalDistance = caregiver.distance < SOFT_DISTANCE;
+	const distance = calculateHaversineDistance(
+		caregiver.location,
+		shift.patient.location,
+	);
+
+	const outOfBounds = distance > HARD_DISTANCE;
+	const optimalDistance = distance < SOFT_DISTANCE;
 	const nightShiftEligible = caregiver.prefersNights;
 	const weekendShiftEligible = caregiver.prefersWeekends;
 
 	let score = 0;
 
-	if (caregiver.distance < SOFT_DISTANCE) {
+	if (distance < SOFT_DISTANCE) {
 		score += 10;
-	} else if (caregiver.distance <= HARD_DISTANCE) {
+	} else if (distance <= HARD_DISTANCE) {
 		score += 5;
 	} else {
 		score -= 10;
@@ -232,7 +240,7 @@ function calculateFitScoreGreedy(
 		id: caregiver.id,
 		name: caregiver.name,
 		score,
-		distance: caregiver.distance,
+		distance,
 		meetsAllNeeds: caregiver.skills.every((c) => shift.needs.includes(c)),
 		outOfBounds,
 		optimalDistance,
@@ -395,7 +403,17 @@ function assignCaregiversToShifts(
 	const assignedCaregivers = new Set<number>();
 
 	if (globalAlgorithmType === "KNAPSACK") {
-		return assignCaregiversWithKnapsack(shifts, caregivers, weights);
+		// You would need to modify assignCaregiversWithKnapsack similarly
+		const knapsackAssignments = assignCaregiversWithKnapsack(
+			shifts,
+			caregivers,
+			weights,
+		);
+
+		return knapsackAssignments.map((shift) => ({
+			shiftId: shift.id,
+			caregiverId: shift.assignedCaregiver?.id ?? null,
+		}));
 	}
 
 	return shifts.map((shift) => {
@@ -430,10 +448,8 @@ function assignCaregiversToShifts(
 		}
 
 		return {
-			...shift,
-			isNightShift: isNightShift(shift),
-			isWeekendShift: isWeekendShift(shift),
-			assignedCaregiver: bestCaregiver,
+			shiftId: shift.id,
+			caregiverId: bestCaregiver?.id ?? null,
 		};
 	});
 }
@@ -502,7 +518,7 @@ export const algorithmRouter = createTRPCRouter({
 
 			const time = performance.now() * 1000;
 			const caregiverData = getNursesSortedByFit(
-				{ ...shift, patient, needs: MOCK_SHIFTS[0]!.needs },
+				{ ...shift, patient, needs: [1] },
 				caregiversWithDistance,
 				weights,
 				input.algorithmType,
@@ -522,27 +538,15 @@ export const algorithmRouter = createTRPCRouter({
 				globalAlgorithmType: z.nativeEnum(GlobalAlgorithmType),
 			}),
 		)
-		.query(async ({ ctx, input }) => {
-			const caregiversWithLocation = await ctx.db.select().from(caregivers);
+		.mutation(async ({ ctx, input }) => {
+			const caregiversFromDB = await ctx.db.select().from(caregivers);
 
-			const baseCaregivers = caregiversWithLocation.map((cg) => {
-				return {
-					id: cg.id,
-					name: cg.name,
-					prefersNights: cg.prefersNights,
-					prefersWeekends: cg.prefersWeekends,
-					skills: cg.skills,
-					location: cg.location,
-					distance: 0,
-				};
-			});
-
-			const shiftsFromDb = await ctx.db
+			const shiftsFromDB = await ctx.db
 				.select()
 				.from(shifts)
 				.leftJoin(patients, eq(shifts.patientId, patients.id));
 
-			const computedShifts = shiftsFromDb.map(({ shift, patient }) => ({
+			const computedShifts = shiftsFromDB.map(({ shift, patient }) => ({
 				id: shift.id,
 				patientId: shift.patientId,
 				startsAt: new Date(shift.startsAt),
@@ -554,7 +558,7 @@ export const algorithmRouter = createTRPCRouter({
 				},
 				isNightShift: isNightShift(shift),
 				isWeekendShift: isWeekendShift(shift),
-				needs: [1, 2, 3],
+				needs: [1],
 			}));
 
 			const weights = {
@@ -562,21 +566,22 @@ export const algorithmRouter = createTRPCRouter({
 				weekendWeight: input.weekendWeight,
 				distanceWeight: input.distanceWeight,
 			};
+			const assignedShifts =
+				// input.globalAlgorithmType === "KNAPSACK" ?
+				assignCaregiversWithKnapsack(computedShifts, caregiversFromDB, weights);
+			// : assignCaregiversToShifts(
+			// 	computedShifts,
+			// 	baseCaregivers,
+			// 	weights,
+			// 	input.algorithmType,
+			// 	input.globalAlgorithmType,
+			// )
 
-			if (input.globalAlgorithmType === "KNAPSACK") {
-				return assignCaregiversWithKnapsack(
-					computedShifts,
-					baseCaregivers,
-					weights,
-				);
+			for (const assignedShift of assignedShifts) {
+				await ctx.db
+					.update(shifts)
+					.set({ caregiverId: assignedShift.assignedCaregiver?.id })
+					.where(eq(shifts.id, assignedShift.id));
 			}
-
-			return assignCaregiversToShifts(
-				MOCK_SHIFTS,
-				baseCaregivers,
-				weights,
-				input.algorithmType,
-				input.globalAlgorithmType,
-			);
 		}),
 });
