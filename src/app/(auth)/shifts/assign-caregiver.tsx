@@ -125,7 +125,7 @@ export function AssignCaregiver({
 
 							<div className="mt-4">
 								<div className="flex flex-row">
-									<h3 className="mb-2 font-semibold">Distance Shift Weight:</h3>
+									<h3 className="mb-2 font-semibold">Distance Weight:</h3>
 									&nbsp;{distanceWeight}
 								</div>
 								<input
