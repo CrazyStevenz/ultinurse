@@ -416,6 +416,7 @@ function assignCaregiversToShifts(
 		return knapsackAssignments.map((shift) => ({
 			shiftId: shift.id,
 			caregiverId: shift.assignedCaregiver?.id ?? null,
+			assignedCaregiver: shift.assignedCaregiver,
 		}));
 	}
 
@@ -453,6 +454,7 @@ function assignCaregiversToShifts(
 		return {
 			shiftId: shift.id,
 			caregiverId: bestCaregiver?.id ?? null,
+			assignedCaregiver: shift.assignedCaregiver,
 		};
 	});
 }
@@ -569,24 +571,19 @@ export const algorithmRouter = createTRPCRouter({
 				weekendWeight: input.weekendWeight,
 				distanceWeight: input.distanceWeight,
 			};
-			const assignedShifts = assignCaregiversWithKnapsack(
+			const assignedShifts = assignCaregiversToShifts(
 				computedShifts,
 				caregiversFromDB,
 				weights,
 				input.algorithmType,
+				input.globalAlgorithmType,
 			);
-			// : assignCaregiversToShifts(
-			// 	computedShifts,
-			// 	baseCaregivers,
-			// 	weights,
-			// 	input.algorithmType,
-			// 	input.globalAlgorithmType,
-			// )
+
 			for (const assignedShift of assignedShifts) {
 				await ctx.db
 					.update(shifts)
 					.set({ caregiverId: assignedShift.assignedCaregiver?.id })
-					.where(eq(shifts.id, assignedShift.id));
+					.where(eq(shifts.id, assignedShift.shiftId));
 			}
 		}),
 });
