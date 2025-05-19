@@ -17,6 +17,7 @@ const AlgorithmType = {
 const GlobalAlgorithmType = {
 	NONE: "NONE",
 	KNAPSACK: "KNAPSACK",
+	TABU: "TABU",
 } as const;
 export type AlgorithmType = keyof typeof AlgorithmType;
 export type GlobalAlgorithmType = keyof typeof GlobalAlgorithmType;
@@ -253,6 +254,7 @@ function assignCaregiversWithKnapsack(
 	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
+	algorithmType: AlgorithmType,
 ) {
 	if (shifts.length === 0) {
 		console.warn("No shifts available to assign caregivers.");
@@ -278,7 +280,7 @@ function assignCaregiversWithKnapsack(
 			shifts[0]!,
 			[caregiverWithDistance],
 			weights,
-			"MCDM",
+			algorithmType,
 		);
 
 		return {
@@ -300,7 +302,7 @@ function assignCaregiversWithKnapsack(
 				shift,
 				[caregiverWithDistance],
 				weights,
-				"MCDM",
+				algorithmType,
 			);
 
 			if (ranked && ranked.percentage > 0) {
@@ -408,6 +410,7 @@ function assignCaregiversToShifts(
 			shifts,
 			caregivers,
 			weights,
+			algorithmType,
 		);
 
 		return knapsackAssignments.map((shift) => ({
@@ -453,7 +456,7 @@ function assignCaregiversToShifts(
 		};
 	});
 }
-
+function TABUSearch() {}
 export const algorithmRouter = createTRPCRouter({
 	read: protectedProcedure
 		.input(
@@ -566,9 +569,12 @@ export const algorithmRouter = createTRPCRouter({
 				weekendWeight: input.weekendWeight,
 				distanceWeight: input.distanceWeight,
 			};
-			const assignedShifts =
-				// input.globalAlgorithmType === "KNAPSACK" ?
-				assignCaregiversWithKnapsack(computedShifts, caregiversFromDB, weights);
+			const assignedShifts = assignCaregiversWithKnapsack(
+				computedShifts,
+				caregiversFromDB,
+				weights,
+				input.algorithmType,
+			);
 			// : assignCaregiversToShifts(
 			// 	computedShifts,
 			// 	baseCaregivers,
@@ -576,7 +582,6 @@ export const algorithmRouter = createTRPCRouter({
 			// 	input.algorithmType,
 			// 	input.globalAlgorithmType,
 			// )
-
 			for (const assignedShift of assignedShifts) {
 				await ctx.db
 					.update(shifts)
