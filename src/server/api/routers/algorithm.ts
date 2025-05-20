@@ -13,12 +13,13 @@ const AlgorithmType = {
 	MCDM: "MCDM",
 	GREEDY: "GREEDY",
 } as const;
+export type AlgorithmType = keyof typeof AlgorithmType;
 
 const GlobalAlgorithmType = {
 	NONE: "NONE",
 	KNAPSACK: "KNAPSACK",
+	TABU: "TABU",
 } as const;
-export type AlgorithmType = keyof typeof AlgorithmType;
 export type GlobalAlgorithmType = keyof typeof GlobalAlgorithmType;
 
 type Weights = {
@@ -253,6 +254,7 @@ function assignCaregiversWithKnapsack(
 	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
+	algorithmType: AlgorithmType,
 ) {
 	if (shifts.length === 0) {
 		console.warn("No shifts available to assign caregivers.");
@@ -278,7 +280,7 @@ function assignCaregiversWithKnapsack(
 			shifts[0]!,
 			[caregiverWithDistance],
 			weights,
-			"MCDM",
+			algorithmType,
 		);
 
 		return {
@@ -300,7 +302,7 @@ function assignCaregiversWithKnapsack(
 				shift,
 				[caregiverWithDistance],
 				weights,
-				"MCDM",
+				algorithmType,
 			);
 
 			if (ranked && ranked.percentage > 0) {
@@ -408,11 +410,13 @@ function assignCaregiversToShifts(
 			shifts,
 			caregivers,
 			weights,
+			algorithmType,
 		);
 
 		return knapsackAssignments.map((shift) => ({
 			shiftId: shift.id,
 			caregiverId: shift.assignedCaregiver?.id ?? null,
+			assignedCaregiver: shift.assignedCaregiver,
 		}));
 	}
 
@@ -450,6 +454,7 @@ function assignCaregiversToShifts(
 		return {
 			shiftId: shift.id,
 			caregiverId: bestCaregiver?.id ?? null,
+			assignedCaregiver: shift.assignedCaregiver,
 		};
 	});
 }
@@ -566,22 +571,21 @@ export const algorithmRouter = createTRPCRouter({
 				weekendWeight: input.weekendWeight,
 				distanceWeight: input.distanceWeight,
 			};
-			const assignedShifts =
-				// input.globalAlgorithmType === "KNAPSACK" ?
-				assignCaregiversWithKnapsack(computedShifts, caregiversFromDB, weights);
-			// : assignCaregiversToShifts(
-			// 	computedShifts,
-			// 	baseCaregivers,
-			// 	weights,
-			// 	input.algorithmType,
-			// 	input.globalAlgorithmType,
-			// )
+			const assignedShifts = assignCaregiversToShifts(
+				computedShifts,
+				caregiversFromDB,
+				weights,
+				input.algorithmType,
+				input.globalAlgorithmType,
+			);
 
 			for (const assignedShift of assignedShifts) {
-				await ctx.db
-					.update(shifts)
-					.set({ caregiverId: assignedShift.assignedCaregiver?.id })
-					.where(eq(shifts.id, assignedShift.id));
+				if (assignedShift.assignedCaregiver?.id) {
+					await ctx.db
+						.update(shifts)
+						.set({ caregiverId: assignedShift.assignedCaregiver.id })
+						.where(eq(shifts.id, assignedShift.shiftId));
+				}
 			}
 		}),
 });
