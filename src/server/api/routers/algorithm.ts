@@ -13,13 +13,13 @@ const AlgorithmType = {
 	MCDM: "MCDM",
 	GREEDY: "GREEDY",
 } as const;
+export type AlgorithmType = keyof typeof AlgorithmType;
 
 const GlobalAlgorithmType = {
 	NONE: "NONE",
 	KNAPSACK: "KNAPSACK",
 	TABU: "TABU",
 } as const;
-export type AlgorithmType = keyof typeof AlgorithmType;
 export type GlobalAlgorithmType = keyof typeof GlobalAlgorithmType;
 
 type Weights = {
@@ -458,7 +458,7 @@ function assignCaregiversToShifts(
 		};
 	});
 }
-function TABUSearch() {}
+
 export const algorithmRouter = createTRPCRouter({
 	read: protectedProcedure
 		.input(
@@ -580,10 +580,12 @@ export const algorithmRouter = createTRPCRouter({
 			);
 
 			for (const assignedShift of assignedShifts) {
-				await ctx.db
-					.update(shifts)
-					.set({ caregiverId: assignedShift.assignedCaregiver?.id })
-					.where(eq(shifts.id, assignedShift.shiftId));
+				if (assignedShift.assignedCaregiver?.id) {
+					await ctx.db
+						.update(shifts)
+						.set({ caregiverId: assignedShift.assignedCaregiver.id })
+						.where(eq(shifts.id, assignedShift.shiftId));
+				}
 			}
 		}),
 });
