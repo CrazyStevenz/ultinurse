@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, Cpu, House, LogIn, LogOut, Users } from "lucide-react";
+import { Building2, House, LogIn, LogOut, Users } from "lucide-react";
 
 function classNames(...classes: string[]) {
 	return classes.filter(Boolean).join(" ");
@@ -74,28 +74,6 @@ export function BottomNavLinks({ isLoggedIn }: { isLoggedIn: boolean }) {
 						)}
 					>
 						Patients
-					</span>
-				</Link>
-			)}
-			{isLoggedIn && (
-				<Link
-					type="button"
-					href="/algorithm"
-					className="group inline-flex flex-col items-center justify-center px-5 hover:bg-gray-50 dark:hover:bg-white/10"
-				>
-					<Cpu
-						className={classNames(
-							pathname === "/algorithm" ? "dark:text-green-500" : "",
-							"mb-1 h-6 w-6 dark:group-hover:text-green-400",
-						)}
-					/>
-					<span
-						className={classNames(
-							pathname === "/algorithm" ? "dark:text-green-500" : "",
-							"text-sm dark:group-hover:text-green-400",
-						)}
-					>
-						Algorithm
 					</span>
 				</Link>
 			)}

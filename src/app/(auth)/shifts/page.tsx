@@ -6,7 +6,7 @@ import { CreateShift } from "./create-shift.tsx";
 import Loading from "../loading";
 import { auth } from "../../../server/auth";
 import { redirect } from "next/navigation";
-import { BulkAssignCaregiver } from "../algorithm/bulk-assign-panel";
+import { BulkAssignCaregiver } from "./bulk-assign-panel";
 import { UnassignAllShifts } from "./unassign-all-shifts";
 
 export const metadata: Metadata = {

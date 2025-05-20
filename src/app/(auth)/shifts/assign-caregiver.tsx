@@ -11,7 +11,7 @@ import {
 	DialogTrigger,
 } from "../../_components/ui/dialog.tsx";
 import { Button } from "../../_components/ui/button.tsx";
-import CaregiverPanel from "../algorithm/caregiver-panel";
+import CaregiverPanel from "./caregiver-panel";
 import type { AlgorithmType } from "../../../server/api/routers/algorithm";
 import { api } from "../../../trpc/react";
 import Loading from "../loading.tsx";
