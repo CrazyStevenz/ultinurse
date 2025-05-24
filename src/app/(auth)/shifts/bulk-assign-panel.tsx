@@ -11,7 +11,10 @@ import {
 	DialogTrigger,
 } from "../../_components/ui/dialog.tsx";
 import { Button } from "../../_components/ui/button.tsx";
-import type { AlgorithmType } from "../../../server/api/routers/algorithm";
+import type {
+	AlgorithmType,
+	StrategyType,
+} from "../../../server/api/routers/algorithm";
 import { api } from "../../../trpc/react";
 import Loading from "../loading.tsx";
 import { Toggle } from "../../_components/ui/toggle";
@@ -22,9 +25,7 @@ export function BulkAssignCaregiver() {
 	const [weekendWeight, setWeekendWeight] = useState(1);
 	const [distanceWeight, setDistanceWeight] = useState(1);
 	const [algorithmType, setAlgorithmType] = useState<AlgorithmType>("MCDM");
-	const [strategyType, setStrategyType] = useState<
-		"SERIAL" | "KNAPSACK" | "TABU"
-	>("SERIAL");
+	const [strategyType, setStrategyType] = useState<StrategyType>("SERIAL");
 
 	const utils = api.useUtils();
 

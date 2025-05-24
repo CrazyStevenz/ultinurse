@@ -315,12 +315,6 @@ function getNursesSortedByFit(
 	}
 }
 
-type ShiftAssignment = {
-	shiftId: number;
-	caregiverId: number | null;
-	assignedCaregiver?: Caregiver;
-};
-
 function assignCaregiversToShifts(
 	shifts: Shift[],
 	caregivers: Caregiver[],
@@ -452,7 +446,6 @@ function assignCaregiversWithTABUSearch(
 	let currentSolution: Shift[] = [...result];
 	let currentScore: number = calculateSolutionScore(
 		currentSolution,
-		caregivers,
 		weights,
 		algorithmType,
 	);
@@ -499,7 +492,6 @@ function assignCaregiversWithTABUSearch(
 				// Calculate the score of the new solution
 				const newScore: number = calculateSolutionScore(
 					newSolution,
-					caregivers,
 					weights,
 					algorithmType,
 				);
@@ -524,7 +516,7 @@ function assignCaregiversWithTABUSearch(
 		currentSolution = bestNeighborSolution;
 		currentScore = bestNeighborScore;
 
-		// Update best solution if current is better
+		// Update the best solution if current is better
 		if (currentScore > bestScore) {
 			bestSolution = [...currentSolution];
 			bestScore = currentScore;
@@ -550,7 +542,6 @@ function assignCaregiversWithTABUSearch(
 // Helper function to calculate the total score of a solution
 function calculateSolutionScore(
 	solution: Shift[],
-	caregivers: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
 ): number {
@@ -586,6 +577,7 @@ function calculateSolutionScore(
 
 	return totalScore;
 }
+
 export const algorithmRouter = createTRPCRouter({
 	read: protectedProcedure
 		.input(
