@@ -5,6 +5,8 @@ import { eq, getTableColumns, sql } from "drizzle-orm";
 import { isNightShift } from "../utils/is-night-shift";
 import { isWeekendShift } from "../utils/is-weekend-shift";
 import { calculateHaversineDistance } from "../utils/calculate-haversine-distance";
+import { randomShiftGenerator } from "../utils/random-shift-generator";
+import { randomCaregiverGenerator } from "../utils/random-caregiver-generator";
 
 const SOFT_DISTANCE = 5;
 const HARD_DISTANCE = 8;
@@ -12,6 +14,7 @@ const HARD_DISTANCE = 8;
 const AlgorithmType = {
 	MCDM: "MCDM",
 	GREEDY: "GREEDY",
+	RANDOM: "RANDOM",
 } as const;
 export type AlgorithmType = keyof typeof AlgorithmType;
 
@@ -170,11 +173,27 @@ function calculateFitScoreGreedy(
 	};
 }
 
+function calculateFitScoreRandom() {
+	return {
+		id: 1,
+		name: "",
+		score: 1,
+		distance: 1,
+		percentage: 100,
+		meetsAllNeeds: false,
+		outOfBounds: false,
+		optimalDistance: false,
+		nightShiftEligible: false,
+		weekendShiftEligible: false,
+	};
+}
+
 function assignCaregiversWithKnapsack(
 	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
+	unfiltered: boolean,
 ) {
 	if (shifts.length === 0) {
 		console.warn("No shifts available to assign caregivers.");
@@ -201,6 +220,7 @@ function assignCaregiversWithKnapsack(
 			[caregiverWithDistance],
 			weights,
 			algorithmType,
+			unfiltered,
 		);
 
 		return {
@@ -222,6 +242,7 @@ function assignCaregiversWithKnapsack(
 				[caregiverWithDistance],
 				weights,
 				algorithmType,
+				unfiltered,
 			);
 			if (ranked && ranked.percentage > 0) {
 				allPairs.push({
@@ -291,24 +312,25 @@ function getNursesSortedByFit(
 	caregivers: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
+	unfiltered: boolean,
 ) {
-	const filteredCaregivers = caregivers.filter((caregiver) =>
-		shift.skills.some((skill) => caregiver.skills.includes(skill)),
-	);
+	const caregiversToUse = unfiltered
+		? caregivers
+		: caregivers.filter((caregiver) =>
+				shift.skills.some((skill) => caregiver.skills.includes(skill)),
+			);
 
 	switch (algorithmType) {
 		case "MCDM":
 			return normalizeScores(
-				rankNursesMCDM(filteredCaregivers, shift, weights),
+				rankNursesMCDM(caregiversToUse, shift, weights),
 			).sort((a, b) => b.percentage - a.percentage);
 		case "GREEDY":
 			return normalizeScores(
-				rankNursesGreedy(filteredCaregivers, shift, weights),
+				rankNursesGreedy(caregiversToUse, shift, weights),
 			).sort((a, b) => b.percentage - a.percentage);
-		default:
-			return normalizeScores(
-				rankNursesMCDM(filteredCaregivers, shift, weights),
-			).sort((a, b) => b.percentage - a.percentage);
+		case "RANDOM":
+			return caregivers.map(() => calculateFitScoreRandom());
 	}
 }
 
@@ -318,6 +340,7 @@ function assignCaregiversToShifts(
 	weights: Weights,
 	algorithmType: AlgorithmType,
 	strategyType: StrategyType,
+	unfiltered: boolean,
 ) {
 	if (strategyType === "KNAPSACK") {
 		// You would need to modify assignCaregiversWithKnapsack similarly
@@ -326,11 +349,12 @@ function assignCaregiversToShifts(
 			caregivers,
 			weights,
 			algorithmType,
+			unfiltered,
 		);
 
 		return knapsackAssignments.map((shift) => ({
-			shiftId: shift.id,
-			caregiverId: shift.assignedCaregiver?.id ?? null,
+			shift,
+			caregiver: shift.assignedCaregiver,
 		}));
 	}
 
@@ -340,11 +364,12 @@ function assignCaregiversToShifts(
 			caregivers,
 			weights,
 			algorithmType,
+			unfiltered,
 		);
 
 		return tabuAssignments.map((shift) => ({
-			shiftId: shift.id,
-			caregiverId: shift.assignedCaregiver?.id ?? null,
+			shift,
+			caregiver: shift.assignedCaregiver,
 		}));
 	}
 
@@ -355,12 +380,12 @@ function assignCaregiversToShifts(
 				caregivers,
 				weights,
 				algorithmType,
+				unfiltered,
 			);
 
 		return simulatedAnnealingAssignments.map((shift) => ({
-			shiftId: shift.id,
-			caregiverId: shift.assignedCaregiver?.id ?? null,
-			assignedCaregiver: shift.assignedCaregiver,
+			shift,
+			caregiver: shift.assignedCaregiver,
 		}));
 	}
 
@@ -376,6 +401,7 @@ function assignCaregiversToShifts(
 			availableCaregivers,
 			weights,
 			algorithmType,
+			unfiltered,
 		);
 
 		const topRanked = rankedNurses[0];
@@ -388,8 +414,8 @@ function assignCaregiversToShifts(
 		}
 
 		return {
-			shiftId: shift.id,
-			caregiverId: bestCaregiver?.id ?? null,
+			shift,
+			caregiver: bestCaregiver,
 		};
 	});
 }
@@ -412,6 +438,7 @@ function assignCaregiversWithSimulatedAnnealing(
 	caregivers: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
+	unfiltered: boolean,
 ): Shift[] {
 	if (shifts.length === 0) {
 		console.warn("No shifts available to assign caregivers.");
@@ -440,6 +467,7 @@ function assignCaregiversWithSimulatedAnnealing(
 				availableCaregivers,
 				weights,
 				algorithmType,
+				unfiltered,
 			);
 
 			// Select the best available caregiver with some randomness
@@ -470,6 +498,7 @@ function assignCaregiversWithSimulatedAnnealing(
 		currentSolution,
 		weights,
 		algorithmType,
+		unfiltered,
 	);
 	let bestSolution: Shift[] = [...currentSolution];
 	let bestScore: number = currentScore;
@@ -546,6 +575,7 @@ function assignCaregiversWithSimulatedAnnealing(
 						availableCaregivers,
 						weights,
 						algorithmType,
+						unfiltered,
 					);
 
 					// Temperature-dependent selection: higher temp = more random
@@ -589,6 +619,7 @@ function assignCaregiversWithSimulatedAnnealing(
 				newSolution,
 				weights,
 				algorithmType,
+				unfiltered,
 			);
 
 			// Decide whether to accept the new solution
@@ -647,6 +678,7 @@ function assignCaregiversWithSimulatedAnnealing(
 					unassignedCaregivers,
 					weights,
 					algorithmType,
+					unfiltered,
 				);
 
 				if (rankedCaregivers.length > 0) {
@@ -674,6 +706,7 @@ function assignCaregiversWithTABUSearch(
 	caregivers: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
+	unfiltered: boolean,
 ): Shift[] {
 	if (shifts.length === 0) {
 		console.warn("No shifts available to assign caregivers.");
@@ -711,6 +744,7 @@ function assignCaregiversWithTABUSearch(
 		currentSolution,
 		weights,
 		algorithmType,
+		unfiltered,
 	);
 	let bestSolution: Shift[] = [...currentSolution];
 	let bestScore: number = currentScore;
@@ -757,6 +791,7 @@ function assignCaregiversWithTABUSearch(
 					newSolution,
 					weights,
 					algorithmType,
+					unfiltered,
 				);
 
 				// Update best neighbor if this is better
@@ -807,6 +842,7 @@ function calculateSolutionScore(
 	solution: Shift[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
+	unfiltered: boolean,
 ): number {
 	let totalScore = 0;
 
@@ -830,6 +866,7 @@ function calculateSolutionScore(
 			caregiversWithDistance,
 			weights,
 			algorithmType,
+			unfiltered,
 		);
 
 		const rankedNurse = rankedNurses[0];
@@ -909,6 +946,7 @@ export const algorithmRouter = createTRPCRouter({
 				caregiversWithDistance,
 				weights,
 				input.algorithmType,
+				false,
 			);
 			const algorithmRuntimeInMicroseconds = performance.now() * 1000 - time;
 
@@ -960,15 +998,89 @@ export const algorithmRouter = createTRPCRouter({
 				weights,
 				input.algorithmType,
 				input.strategyType,
+				false,
 			);
 
 			for (const assignedShift of assignedShifts) {
-				if (assignedShift.caregiverId) {
+				if (assignedShift.caregiver) {
 					await ctx.db
 						.update(shifts)
-						.set({ caregiverId: assignedShift.caregiverId })
-						.where(eq(shifts.id, assignedShift.shiftId));
+						.set({ caregiverId: assignedShift.caregiver.id })
+						.where(eq(shifts.id, assignedShift.shift.id));
 				}
 			}
+		}),
+
+	readStats: protectedProcedure
+		.input(
+			z.object({
+				nightWeight: z.number().min(0).max(5),
+				weekendWeight: z.number().min(0).max(5),
+				distanceWeight: z.number().min(0).max(5),
+				algorithmType: z.nativeEnum(AlgorithmType),
+				strategyType: z.nativeEnum(StrategyType),
+			}),
+		)
+		.query(async ({ ctx, input }) => {
+			const dbPatients = await ctx.db.select().from(patients);
+
+			if (!dbPatients.length) {
+				throw new Error("No patients available to create shifts.");
+			}
+
+			const randomShifts = randomShiftGenerator(
+				1000,
+				dbPatients.map((patient) => patient.id),
+			).map((randomShift) => {
+				const patient = dbPatients.find(
+					({ id }) => id === randomShift.patientId,
+				);
+				return {
+					...randomShift,
+					patient: {
+						name: patient!.name,
+						location: patient!.location,
+					},
+				};
+			});
+
+			const weights = {
+				nightWeight: input.nightWeight,
+				weekendWeight: input.weekendWeight,
+				distanceWeight: input.distanceWeight,
+			};
+
+			const time = performance.now();
+			const data = assignCaregiversToShifts(
+				randomShifts,
+				randomCaregiverGenerator(1000),
+				weights,
+				input.algorithmType,
+				input.strategyType,
+				true,
+			);
+			const algorithmRuntimeInMs = performance.now() - time;
+
+			return {
+				algorithmRuntimeInMs,
+				percentageOfMeetsAllNeeds:
+					(data.reduce((acc, { shift, caregiver }) => {
+						if (shift.skills.every((c) => caregiver?.skills.includes(c))) {
+							return acc + 1;
+						}
+						return acc;
+					}, 0) /
+						data.length) *
+					100,
+				percentageOfMeetsSomeNeeds:
+					(data.reduce((acc, { shift, caregiver }) => {
+						if (shift.skills.some((c) => caregiver?.skills.includes(c))) {
+							return acc + 1;
+						}
+						return acc;
+					}, 0) /
+						data.length) *
+					100,
+			};
 		}),
 });
