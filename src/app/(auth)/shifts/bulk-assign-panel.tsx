@@ -68,6 +68,12 @@ export function BulkAssignCaregiver() {
 								>
 									Greedy
 								</Toggle>
+								<Toggle
+									pressed={algorithmType === "SIMULATED_ANNEALING"}
+									onPressedChange={() => setAlgorithmType("SIMULATED_ANNEALING")}
+								>
+									Simulated Annealing
+								</Toggle>
 							</div>
 
 							<h3 className="mb-2 mt-4 font-semibold">Strategy:</h3>
