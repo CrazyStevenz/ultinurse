@@ -50,19 +50,6 @@ type Shift = {
 	assignedCaregiver?: Caregiver;
 };
 
-type NurseData = {
-	id: number;
-	name: string;
-	score: number;
-	percentage: number;
-	distance: number;
-	meetsAllNeeds: boolean;
-	outOfBounds: boolean;
-	optimalDistance: boolean;
-	nightShiftEligible: boolean;
-	weekendShiftEligible: boolean;
-};
-
 function normalizeScores<T extends { score: number }>(
 	caregivers: T[],
 ): (T & { percentage: number })[] {
@@ -313,7 +300,7 @@ function getNursesSortedByFit(
 	caregivers: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
-): NurseData[] {
+) {
 	const filteredCaregivers = caregivers.filter((caregiver) =>
 		shift.skills.some((skill) => caregiver.skills.includes(skill)),
 	);
