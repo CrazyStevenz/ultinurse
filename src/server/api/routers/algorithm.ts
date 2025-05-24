@@ -15,12 +15,12 @@ const AlgorithmType = {
 } as const;
 export type AlgorithmType = keyof typeof AlgorithmType;
 
-const GlobalAlgorithmType = {
-	NONE: "NONE",
+const StrategyType = {
+	SERIAL: "SERIAL",
 	KNAPSACK: "KNAPSACK",
 	TABU: "TABU",
 } as const;
-export type GlobalAlgorithmType = keyof typeof GlobalAlgorithmType;
+export type StrategyType = keyof typeof StrategyType;
 
 type Weights = {
 	nightWeight: number;
@@ -400,11 +400,11 @@ function assignCaregiversToShifts(
 	caregivers: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
-	globalAlgorithmType: GlobalAlgorithmType,
+	strategyType: StrategyType,
 ) {
 	const assignedCaregivers = new Set<number>();
 
-	if (globalAlgorithmType === "KNAPSACK") {
+	if (strategyType === "KNAPSACK") {
 		// You would need to modify assignCaregiversWithKnapsack similarly
 		const knapsackAssignments = assignCaregiversWithKnapsack(
 			shifts,
@@ -540,7 +540,7 @@ export const algorithmRouter = createTRPCRouter({
 				weekendWeight: z.number().min(0).max(5),
 				distanceWeight: z.number().min(0).max(5),
 				algorithmType: z.nativeEnum(AlgorithmType),
-				globalAlgorithmType: z.nativeEnum(GlobalAlgorithmType),
+				strategyType: z.nativeEnum(StrategyType),
 			}),
 		)
 		.mutation(async ({ ctx, input }) => {
@@ -576,7 +576,7 @@ export const algorithmRouter = createTRPCRouter({
 				caregiversFromDB,
 				weights,
 				input.algorithmType,
-				input.globalAlgorithmType,
+				input.strategyType,
 			);
 
 			for (const assignedShift of assignedShifts) {

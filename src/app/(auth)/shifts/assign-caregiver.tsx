@@ -77,7 +77,7 @@ export function AssignCaregiver({
 				{!isPending ? (
 					<>
 						<div className="mt-4">
-							<h3 className="mb-2 font-semibold">Algorithm Type:</h3>
+							<h3 className="mb-2 font-semibold">Algorithm:</h3>
 							<div className="space-x-2">
 								<Toggle
 									pressed={algorithmType === "MCDM"}

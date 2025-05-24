@@ -18,13 +18,13 @@ import { Toggle } from "../../_components/ui/toggle";
 
 export function BulkAssignCaregiver() {
 	const [open, setOpen] = useState(false);
-	const [algorithmType, setAlgorithmType] = useState<AlgorithmType>("MCDM");
 	const [nightWeight, setNightWeight] = useState(1);
 	const [weekendWeight, setWeekendWeight] = useState(1);
 	const [distanceWeight, setDistanceWeight] = useState(1);
-	const [globalAlgorithmType, setGlobalAlgorithmType] = useState<
-		"NONE" | "KNAPSACK"
-	>("NONE");
+	const [algorithmType, setAlgorithmType] = useState<AlgorithmType>("MCDM");
+	const [strategyType, setStrategyType] = useState<"SERIAL" | "KNAPSACK">(
+		"SERIAL",
+	);
 
 	const utils = api.useUtils();
 
@@ -54,7 +54,7 @@ export function BulkAssignCaregiver() {
 				{!isPending ? (
 					<>
 						<div className="mt-4">
-							<h3 className="mb-2 font-semibold">Algorithm Type:</h3>
+							<h3 className="mb-2 font-semibold">Algorithm:</h3>
 							<div className="space-x-2">
 								<Toggle
 									pressed={algorithmType === "MCDM"}
@@ -70,19 +70,17 @@ export function BulkAssignCaregiver() {
 								</Toggle>
 							</div>
 
-							<h3 className="mb-2 mt-4 font-semibold">
-								Global Algorithm Type:
-							</h3>
+							<h3 className="mb-2 mt-4 font-semibold">Strategy:</h3>
 							<div className="space-x-2">
 								<Toggle
-									pressed={globalAlgorithmType === "NONE"}
-									onPressedChange={() => setGlobalAlgorithmType("NONE")}
+									pressed={strategyType === "SERIAL"}
+									onPressedChange={() => setStrategyType("SERIAL")}
 								>
-									None
+									Serial
 								</Toggle>
 								<Toggle
-									pressed={globalAlgorithmType === "KNAPSACK"}
-									onPressedChange={() => setGlobalAlgorithmType("KNAPSACK")}
+									pressed={strategyType === "KNAPSACK"}
+									onPressedChange={() => setStrategyType("KNAPSACK")}
 								>
 									Knapsack
 								</Toggle>
@@ -142,7 +140,7 @@ export function BulkAssignCaregiver() {
 										weekendWeight,
 										distanceWeight,
 										algorithmType,
-										globalAlgorithmType,
+										strategyType,
 									})
 								}
 							>
