@@ -67,9 +67,12 @@ function normalizeScores<T extends { score: number }>(
 	nurses: T[],
 ): (T & { percentage: number })[] {
 	const maxScore = Math.max(...nurses.map((n) => n.score));
-	return nurses.map((n) => ({
-		...n,
-		percentage: maxScore > 0 ? Math.round((n.score / maxScore) * 1000) / 10 : 0,
+	return nurses.map((nurse) => ({
+		...nurse,
+		percentage:
+			nurse.score > 0 && maxScore > 0
+				? Math.round((nurse.score / maxScore) * 1000) / 10
+				: 0,
 	}));
 }
 
