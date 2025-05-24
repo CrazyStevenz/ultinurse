@@ -12,7 +12,6 @@ const HARD_DISTANCE = 8;
 const AlgorithmType = {
 	MCDM: "MCDM",
 	GREEDY: "GREEDY",
-	SIMULATED_ANNEALING: "SIMULATED_ANNEALING",
 } as const;
 export type AlgorithmType = keyof typeof AlgorithmType;
 
@@ -20,6 +19,7 @@ const StrategyType = {
 	SERIAL: "SERIAL",
 	KNAPSACK: "KNAPSACK",
 	TABU: "TABU",
+	SIMULATED_ANNEALING: "SIMULATED_ANNEALING",
 } as const;
 export type StrategyType = keyof typeof StrategyType;
 
@@ -81,16 +81,6 @@ function rankNursesGreedy(
 ) {
 	return caregivers.map((caregiver) =>
 		calculateFitScoreGreedy(caregiver, shift, weights),
-	);
-}
-
-function rankNursesSimulatedAnnealing(
-	caregivers: Caregiver[],
-	shift: Shift,
-	weights: Weights,
-) {
-	return caregivers.map((caregiver) =>
-		calculateFitScoreSimulatedAnnealing(caregiver, shift, weights),
 	);
 }
 
@@ -166,63 +156,6 @@ function calculateFitScoreGreedy(
 
 	if (nightShiftEligible) score += weights.nightWeight * 5;
 	if (weekendShiftEligible) score += weights.weekendWeight * 5;
-
-	return {
-		id: caregiver.id,
-		name: caregiver.name,
-		score,
-		distance,
-		meetsAllNeeds: shift.skills.every((c) => caregiver.skills.includes(c)),
-		outOfBounds: distance > HARD_DISTANCE,
-		optimalDistance: distance < SOFT_DISTANCE,
-		nightShiftEligible,
-		weekendShiftEligible,
-	};
-}
-
-function calculateFitScoreSimulatedAnnealing(
-	caregiver: Caregiver,
-	shift: Shift,
-	weights: Weights,
-) {
-	const distance = calculateHaversineDistance(
-		caregiver.location,
-		shift.patient.location,
-	);
-
-	const skillMatch = shift.skills.filter((skill) =>
-		caregiver.skills.includes(skill),
-	).length;
-	const skillMatchPercentage =
-		shift.skills.length > 0 ? skillMatch / shift.skills.length : 0;
-
-	// Base score calculation
-	let score = skillMatchPercentage * 20; // Up to 20 points for skill match
-
-	// Distance scoring
-	if (distance < SOFT_DISTANCE) {
-		score += 15; // Higher bonus for optimal distance
-	} else if (distance <= HARD_DISTANCE) {
-		// Linear penalty based on distance and weight
-		score +=
-			15 -
-			((distance - SOFT_DISTANCE) / (HARD_DISTANCE - SOFT_DISTANCE)) *
-				10 *
-				weights.distanceWeight;
-	} else {
-		score -= 15 * weights.distanceWeight; // Higher penalty for out of bounds
-	}
-
-	const nightShiftEligible = isNightShift(shift) === caregiver.prefersNights;
-	const weekendShiftEligible =
-		isWeekendShift(shift) === caregiver.prefersWeekends;
-
-	score += nightShiftEligible
-		? weights.nightWeight * 7
-		: -weights.nightWeight * 3;
-	score += weekendShiftEligible
-		? weights.weekendWeight * 7
-		: -weights.weekendWeight * 3;
 
 	return {
 		id: caregiver.id,
@@ -372,9 +305,9 @@ function getNursesSortedByFit(
 			return normalizeScores(
 				rankNursesGreedy(filteredCaregivers, shift, weights),
 			).sort((a, b) => b.percentage - a.percentage);
-		case "SIMULATED_ANNEALING":
+		default:
 			return normalizeScores(
-				rankNursesSimulatedAnnealing(filteredCaregivers, shift, weights),
+				rankNursesMCDM(filteredCaregivers, shift, weights),
 			).sort((a, b) => b.percentage - a.percentage);
 	}
 }
@@ -386,8 +319,6 @@ function assignCaregiversToShifts(
 	algorithmType: AlgorithmType,
 	strategyType: StrategyType,
 ) {
-	const assignedCaregivers = new Set<number>();
-
 	if (strategyType === "KNAPSACK") {
 		// You would need to modify assignCaregiversWithKnapsack similarly
 		const knapsackAssignments = assignCaregiversWithKnapsack(
@@ -400,7 +331,6 @@ function assignCaregiversToShifts(
 		return knapsackAssignments.map((shift) => ({
 			shiftId: shift.id,
 			caregiverId: shift.assignedCaregiver?.id ?? null,
-			assignedCaregiver: shift.assignedCaregiver,
 		}));
 	}
 
@@ -415,11 +345,10 @@ function assignCaregiversToShifts(
 		return tabuAssignments.map((shift) => ({
 			shiftId: shift.id,
 			caregiverId: shift.assignedCaregiver?.id ?? null,
-			assignedCaregiver: shift.assignedCaregiver,
 		}));
 	}
 
-	if (algorithmType === "SIMULATED_ANNEALING") {
+	if (strategyType === "SIMULATED_ANNEALING") {
 		const simulatedAnnealingAssignments =
 			assignCaregiversWithSimulatedAnnealing(
 				shifts,
@@ -435,31 +364,23 @@ function assignCaregiversToShifts(
 		}));
 	}
 
+	const assignedCaregivers = new Set<number>();
+
 	return shifts.map((shift) => {
 		const availableCaregivers = caregivers.filter(
 			(caregiver) => !assignedCaregivers.has(caregiver.id),
 		);
 
-		const caregiversWithDistance = availableCaregivers.map((caregiver) => ({
-			...caregiver,
-			distance: parseFloat(
-				calculateHaversineDistance(
-					caregiver.location,
-					shift.patient.location,
-				).toFixed(1),
-			),
-		}));
-
 		const rankedNurses = getNursesSortedByFit(
 			shift,
-			caregiversWithDistance,
+			availableCaregivers,
 			weights,
 			algorithmType,
 		);
 
 		const topRanked = rankedNurses[0];
 		const bestCaregiver = topRanked
-			? caregiversWithDistance.find((cg) => cg.name === topRanked.name)
+			? availableCaregivers.find((cg) => cg.id === topRanked.id)
 			: undefined;
 
 		if (bestCaregiver) {
@@ -469,10 +390,10 @@ function assignCaregiversToShifts(
 		return {
 			shiftId: shift.id,
 			caregiverId: bestCaregiver?.id ?? null,
-			assignedCaregiver: shift.assignedCaregiver,
 		};
 	});
 }
+
 // Type for a move in the TABU search
 type TabuMove = {
 	shiftId: number;
@@ -505,20 +426,41 @@ function assignCaregiversWithSimulatedAnnealing(
 		isWeekendShift: isWeekendShift(shift),
 	}));
 
-	// Initialize with a random solution
-	const assignedCaregivers = new Set<number>();
+	// Initialize with a greedy solution for better starting point
+	const initialAssignedCaregivers = new Set<number>();
 	for (const shift of result) {
 		const availableCaregivers = caregivers.filter(
-			(caregiver) => !assignedCaregivers.has(caregiver.id),
+			(caregiver) => !initialAssignedCaregivers.has(caregiver.id),
 		);
 
 		if (availableCaregivers.length > 0) {
-			const randomIndex = Math.floor(
-				Math.random() * availableCaregivers.length,
+			// Sort caregivers by their fit score for this shift
+			const rankedCaregivers = getNursesSortedByFit(
+				shift,
+				availableCaregivers,
+				weights,
+				algorithmType,
 			);
-			const randomCaregiver = availableCaregivers[randomIndex]!;
-			shift.assignedCaregiver = randomCaregiver;
-			assignedCaregivers.add(randomCaregiver.id);
+
+			// Select the best available caregiver with some randomness
+			// (80% chance to pick from top 3 if available)
+			let selectedIndex = 0;
+			if (rankedCaregivers.length > 1 && Math.random() < 0.8) {
+				const topCount = Math.min(3, rankedCaregivers.length);
+				selectedIndex = Math.floor(Math.random() * topCount);
+			} else if (rankedCaregivers.length > 0) {
+				selectedIndex = Math.floor(Math.random() * rankedCaregivers.length);
+			}
+
+			if (rankedCaregivers[selectedIndex]) {
+				const selectedCaregiver = caregivers.find(
+					(c) => c.id === rankedCaregivers[selectedIndex]!.id,
+				);
+				if (selectedCaregiver) {
+					shift.assignedCaregiver = selectedCaregiver;
+					initialAssignedCaregivers.add(selectedCaregiver.id);
+				}
+			}
 		}
 	}
 
@@ -526,55 +468,125 @@ function assignCaregiversWithSimulatedAnnealing(
 	let currentSolution: Shift[] = [...result];
 	let currentScore: number = calculateSolutionScore(
 		currentSolution,
-		caregivers,
 		weights,
 		algorithmType,
 	);
 	let bestSolution: Shift[] = [...currentSolution];
 	let bestScore: number = currentScore;
 
-	// Simulated annealing parameters
+	// Simulated annealing parameters - adjusted for better performance
 	const initialTemperature = 100.0;
-	const coolingRate = 0.95;
-	const minTemperature = 0.1;
-	const maxIterationsPerTemperature = 100;
+	const coolingRate = 0.97; // Slower cooling for more thorough exploration
+	const minTemperature = 0.01; // Lower minimum temperature
+	const maxIterationsPerTemperature = Math.max(100, shifts.length * 2); // Scale with problem size
 
 	// Simulated annealing process
 	let temperature = initialTemperature;
+	let iterationsWithoutImprovement = 0;
+	const maxIterationsWithoutImprovement = maxIterationsPerTemperature * 3;
 
-	while (temperature > minTemperature) {
+	while (
+		temperature > minTemperature &&
+		iterationsWithoutImprovement < maxIterationsWithoutImprovement
+	) {
+		let improvementFound = false;
+
 		for (let i = 0; i < maxIterationsPerTemperature; i++) {
-			// Generate a neighbor solution by swapping two random assignments
+			// Generate a neighbor solution using one of several neighborhood moves
 			const newSolution = [...currentSolution];
+			const moveType = Math.random();
 
-			// Select a random shift
-			const shiftIndex = Math.floor(Math.random() * newSolution.length);
-			const shift = newSolution[shiftIndex]!;
+			if (moveType < 0.5 && newSolution.length >= 2) {
+				// Move type 1: Swap assignments between two shifts (50% chance)
+				const shiftIndex1 = Math.floor(Math.random() * newSolution.length);
+				let shiftIndex2 = Math.floor(Math.random() * newSolution.length);
+				// Ensure we select two different shifts
+				while (shiftIndex2 === shiftIndex1 && newSolution.length > 1) {
+					shiftIndex2 = Math.floor(Math.random() * newSolution.length);
+				}
 
-			// Select a random caregiver that's not currently assigned to this shift
-			const availableCaregivers = caregivers.filter(
-				(caregiver) =>
-					!shift.assignedCaregiver ||
-					caregiver.id !== shift.assignedCaregiver.id,
-			);
+				const shift1 = newSolution[shiftIndex1]!;
+				const shift2 = newSolution[shiftIndex2]!;
 
-			if (availableCaregivers.length === 0) continue;
+				// Swap the assigned caregivers
+				const tempCaregiver = shift1.assignedCaregiver;
+				newSolution[shiftIndex1] = {
+					...shift1,
+					assignedCaregiver: shift2.assignedCaregiver,
+				};
+				newSolution[shiftIndex2] = {
+					...shift2,
+					assignedCaregiver: tempCaregiver,
+				};
+			} else {
+				// Move type 2: Reassign a shift to a different caregiver (50% chance)
+				const shiftIndex = Math.floor(Math.random() * newSolution.length);
+				const shift = newSolution[shiftIndex]!;
 
-			const caregiverIndex = Math.floor(
-				Math.random() * availableCaregivers.length,
-			);
-			const newCaregiver = availableCaregivers[caregiverIndex]!;
+				// Get all caregivers not currently assigned to any shift in the solution
+				const assignedCaregiverIds = new Set(
+					newSolution
+						.map((s) => s.assignedCaregiver?.id)
+						.filter((id): id is number => id !== undefined),
+				);
 
-			// Make the swap
-			newSolution[shiftIndex] = {
-				...shift,
-				assignedCaregiver: newCaregiver,
-			};
+				// Filter out the current caregiver assigned to this shift
+				if (shift.assignedCaregiver) {
+					assignedCaregiverIds.delete(shift.assignedCaregiver.id);
+				}
+
+				const availableCaregivers = caregivers.filter(
+					(caregiver) => !assignedCaregiverIds.has(caregiver.id),
+				);
+
+				if (availableCaregivers.length > 0) {
+					// Select a caregiver with preference for those with better fit
+					const rankedAvailableCaregivers = getNursesSortedByFit(
+						shift,
+						availableCaregivers,
+						weights,
+						algorithmType,
+					);
+
+					// Temperature-dependent selection: higher temp = more random
+					const randomFactor = temperature / initialTemperature;
+					let selectedIndex = 0;
+
+					if (rankedAvailableCaregivers.length > 1) {
+						if (Math.random() < randomFactor) {
+							// More random selection at higher temperatures
+							selectedIndex = Math.floor(
+								Math.random() * rankedAvailableCaregivers.length,
+							);
+						} else {
+							// More greedy selection at lower temperatures
+							// Bias towards better caregivers but still allow some randomness
+							const topCount = Math.max(
+								1,
+								Math.floor(rankedAvailableCaregivers.length * 0.3),
+							);
+							selectedIndex = Math.floor(Math.random() * topCount);
+						}
+					}
+
+					if (rankedAvailableCaregivers[selectedIndex]) {
+						const newCaregiver = availableCaregivers.find(
+							(c) => c.id === rankedAvailableCaregivers[selectedIndex]!.id,
+						);
+
+						if (newCaregiver) {
+							newSolution[shiftIndex] = {
+								...shift,
+								assignedCaregiver: newCaregiver,
+							};
+						}
+					}
+				}
+			}
 
 			// Calculate new solution score
 			const newScore = calculateSolutionScore(
 				newSolution,
-				caregivers,
 				weights,
 				algorithmType,
 			);
@@ -586,14 +598,17 @@ function assignCaregiversWithSimulatedAnnealing(
 				// Accept better solution
 				currentSolution = newSolution;
 				currentScore = newScore;
+				improvementFound = true;
 
 				// Update best solution if current is better
 				if (currentScore > bestScore) {
 					bestSolution = [...currentSolution];
 					bestScore = currentScore;
+					iterationsWithoutImprovement = 0; // Reset counter when we find a new best
 				}
 			} else {
 				// Accept worse solution with a probability that decreases as temperature decreases
+				// Using Metropolis criterion for acceptance probability
 				const acceptanceProbability = Math.exp(scoreDifference / temperature);
 				if (Math.random() < acceptanceProbability) {
 					currentSolution = newSolution;
@@ -602,11 +617,56 @@ function assignCaregiversWithSimulatedAnnealing(
 			}
 		}
 
+		// Update iterations without improvement counter
+		if (!improvementFound) {
+			iterationsWithoutImprovement += maxIterationsPerTemperature;
+		}
+
 		// Cool down
 		temperature *= coolingRate;
 	}
 
-	return bestSolution;
+	// Ensure all shifts have an assigned caregiver if possible
+	const finalSolution = [...bestSolution];
+	const assignedCaregiverIds = new Set(
+		finalSolution
+			.map((s) => s.assignedCaregiver?.id)
+			.filter((id): id is number => id !== undefined),
+	);
+
+	// Try to assign caregivers to any unassigned shifts
+	for (let i = 0; i < finalSolution.length; i++) {
+		if (!finalSolution[i]!.assignedCaregiver) {
+			const unassignedCaregivers = caregivers.filter(
+				(caregiver) => !assignedCaregiverIds.has(caregiver.id),
+			);
+
+			if (unassignedCaregivers.length > 0) {
+				const rankedCaregivers = getNursesSortedByFit(
+					finalSolution[i]!,
+					unassignedCaregivers,
+					weights,
+					algorithmType,
+				);
+
+				if (rankedCaregivers.length > 0) {
+					const bestCaregiver = unassignedCaregivers.find(
+						(c) => c.id === rankedCaregivers[0]!.id,
+					);
+
+					if (bestCaregiver) {
+						finalSolution[i] = {
+							...finalSolution[i]!,
+							assignedCaregiver: bestCaregiver,
+						};
+						assignedCaregiverIds.add(bestCaregiver.id);
+					}
+				}
+			}
+		}
+	}
+
+	return finalSolution;
 }
 
 function assignCaregiversWithTABUSearch(
@@ -649,7 +709,6 @@ function assignCaregiversWithTABUSearch(
 	let currentSolution: Shift[] = [...result];
 	let currentScore: number = calculateSolutionScore(
 		currentSolution,
-		caregivers,
 		weights,
 		algorithmType,
 	);
@@ -696,7 +755,6 @@ function assignCaregiversWithTABUSearch(
 				// Calculate the score of the new solution
 				const newScore: number = calculateSolutionScore(
 					newSolution,
-					caregivers,
 					weights,
 					algorithmType,
 				);
@@ -721,7 +779,7 @@ function assignCaregiversWithTABUSearch(
 		currentSolution = bestNeighborSolution;
 		currentScore = bestNeighborScore;
 
-		// Update best solution if current is better
+		// Update the best solution if current is better
 		if (currentScore > bestScore) {
 			bestSolution = [...currentSolution];
 			bestScore = currentScore;
@@ -747,7 +805,6 @@ function assignCaregiversWithTABUSearch(
 // Helper function to calculate the total score of a solution
 function calculateSolutionScore(
 	solution: Shift[],
-	caregivers: Caregiver[],
 	weights: Weights,
 	algorithmType: AlgorithmType,
 ): number {
@@ -896,6 +953,7 @@ export const algorithmRouter = createTRPCRouter({
 				weekendWeight: input.weekendWeight,
 				distanceWeight: input.distanceWeight,
 			};
+
 			const assignedShifts = assignCaregiversToShifts(
 				computedShifts,
 				caregiversFromDB,
@@ -905,10 +963,10 @@ export const algorithmRouter = createTRPCRouter({
 			);
 
 			for (const assignedShift of assignedShifts) {
-				if (assignedShift.assignedCaregiver?.id) {
+				if (assignedShift.caregiverId) {
 					await ctx.db
 						.update(shifts)
-						.set({ caregiverId: assignedShift.assignedCaregiver.id })
+						.set({ caregiverId: assignedShift.caregiverId })
 						.where(eq(shifts.id, assignedShift.shiftId));
 				}
 			}

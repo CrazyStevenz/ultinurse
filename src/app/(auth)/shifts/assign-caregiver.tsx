@@ -91,12 +91,6 @@ export function AssignCaregiver({
 								>
 									Greedy
 								</Toggle>
-								<Toggle
-									pressed={algorithmType === "SIMULATED_ANNEALING"}
-									onPressedChange={() => setAlgorithmType("SIMULATED_ANNEALING")}
-								>
-									Simulated Annealing
-								</Toggle>
 							</div>
 
 							<div className="mt-4">

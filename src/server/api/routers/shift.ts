@@ -5,6 +5,7 @@ import { createTRPCRouter, protectedProcedure } from "../trpc.ts";
 import { caregivers, patients, shifts } from "../../db/schema.ts";
 import { isWeekendShift } from "../utils/is-weekend-shift";
 import { isNightShift } from "../utils/is-night-shift.ts";
+import { randomShiftGenerator } from "../utils/random-shift-generator";
 
 export const shiftRouter = createTRPCRouter({
 	create: protectedProcedure
@@ -63,46 +64,16 @@ export const shiftRouter = createTRPCRouter({
 		}),
 
 	generateRandom: protectedProcedure.mutation(async ({ ctx }) => {
-		const patientsList = await ctx.db.select().from(patients);
+		const dbPatients = await ctx.db.select().from(patients);
 
-		if (!patientsList.length) {
+		if (!dbPatients.length) {
 			throw new Error("No patients available to create shifts.");
 		}
 
-		const now = new Date();
-		const year = now.getFullYear();
-		const month = now.getMonth(); // 0-based
-		const today = now.getDate();
-		const lastDay = new Date(year, month + 1, 0).getDate();
-
-		const shiftsToInsert = Array.from({ length: 10 }).map(() => {
-			const randomPatient =
-				patientsList[Math.floor(Math.random() * patientsList.length)];
-
-			const randomDay =
-				today + Math.floor(Math.random() * (lastDay - today + 1));
-			const startHour = 6 + Math.floor(Math.random() * 12); // 6AM to 5PM
-			const startMinute = Math.floor(Math.random() * 60);
-
-			const startsAt = new Date(year, month, randomDay, startHour, startMinute);
-
-			const durationHours = 1 + Math.floor(Math.random() * 8); // 1–8h
-			const durationMs = durationHours * 60 * 60 * 1000;
-			const endsAt = new Date(startsAt.getTime() + durationMs);
-
-			// Generate 1 to 3 skills, with an ID between 1 and 6
-			const skills = Array.from(
-				{ length: Math.floor(Math.random() * 3) + 1 },
-				() => Math.floor(Math.random() * 6) + 1,
-			);
-
-			return {
-				patientId: randomPatient!.id,
-				startsAt,
-				endsAt,
-				skills,
-			};
-		});
+		const shiftsToInsert = randomShiftGenerator(
+			10,
+			dbPatients.map(({ id }) => id),
+		);
 
 		await ctx.db.insert(shifts).values(shiftsToInsert);
 	}),
