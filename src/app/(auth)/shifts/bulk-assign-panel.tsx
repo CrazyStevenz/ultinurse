@@ -91,6 +91,12 @@ export function BulkAssignCaregiver() {
 								>
 									Tabu
 								</Toggle>
+								<Toggle
+									pressed={strategyType === "SIMULATED_ANNEALING"}
+									onPressedChange={() => setStrategyType("SIMULATED_ANNEALING")}
+								>
+									Simulated Annealing
+								</Toggle>
 							</div>
 
 							<div className="mt-4">
