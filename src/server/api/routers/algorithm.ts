@@ -64,14 +64,14 @@ type NurseData = {
 };
 
 function normalizeScores<T extends { score: number }>(
-	nurses: T[],
+	caregivers: T[],
 ): (T & { percentage: number })[] {
-	const maxScore = Math.max(...nurses.map((n) => n.score));
-	return nurses.map((nurse) => ({
-		...nurse,
+	const maxScore = Math.max(...caregivers.map((n) => n.score));
+	return caregivers.map((caregiver) => ({
+		...caregiver,
 		percentage:
-			nurse.score > 0 && maxScore > 0
-				? Math.round((nurse.score / maxScore) * 1000) / 10
+			caregiver.score > 0 && maxScore > 0
+				? Math.round((caregiver.score / maxScore) * 1000) / 10
 				: 0,
 	}));
 }
