@@ -42,7 +42,7 @@ type Shift = {
 	patientId: number;
 	startsAt: Date;
 	endsAt: Date;
-	needs: number[];
+	skills: number[];
 	patient: {
 		name: string;
 		location: [number, number];
@@ -85,14 +85,12 @@ function rankNursesMCDM(
 
 function rankNursesGreedy(
 	caregivers: Caregiver[],
-	patient: Shift,
+	shift: Shift,
 	weights: Weights,
-): Omit<NurseData, "percentage">[] {
-	return caregivers
-		.filter((caregiver) =>
-			caregiver.skills.some((c) => patient.needs.includes(c)),
-		)
-		.map((caregiver) => calculateFitScoreGreedy(caregiver, patient, weights));
+) {
+	return caregivers.map((caregiver) =>
+		calculateFitScoreGreedy(caregiver, shift, weights),
+	);
 }
 
 function calculateFitScoreMCDM(
@@ -100,10 +98,8 @@ function calculateFitScoreMCDM(
 	shift: Shift,
 	weights: Weights,
 ) {
-	const time = new Date().getTime();
-
-	const matchingCompetencies = caregiver.skills.filter((c) =>
-		shift.needs.includes(c),
+	const matchingCompetencies = shift.skills.filter((c) =>
+		caregiver.skills.includes(c),
 	).length;
 	let score = matchingCompetencies * 20;
 	let optimalDistance = false;
@@ -138,12 +134,11 @@ function calculateFitScoreMCDM(
 		name: caregiver.name,
 		score,
 		distance,
-		meetsAllNeeds: caregiver.skills.some((c) => shift.needs.includes(c)),
+		meetsAllNeeds: shift.skills.every((c) => caregiver.skills.includes(c)),
 		outOfBounds,
 		optimalDistance,
 		nightShiftEligible,
 		weekendShiftEligible,
-		algorithmRuntimeInMs: new Date().getTime() - time,
 	};
 }
 
@@ -151,7 +146,7 @@ function calculateFitScoreGreedy(
 	caregiver: Caregiver,
 	shift: Shift,
 	weights: Weights,
-): Omit<NurseData, "percentage"> {
+) {
 	const distance = calculateHaversineDistance(
 		caregiver.location,
 		shift.patient.location,
@@ -184,7 +179,7 @@ function calculateFitScoreGreedy(
 		name: caregiver.name,
 		score,
 		distance,
-		meetsAllNeeds: caregiver.skills.every((c) => shift.needs.includes(c)),
+		meetsAllNeeds: shift.skills.every((c) => caregiver.skills.includes(c)),
 		outOfBounds,
 		optimalDistance,
 		nightShiftEligible,
@@ -316,23 +311,18 @@ function getNursesSortedByFit(
 	weights: Weights,
 	algorithmType: AlgorithmType,
 ): NurseData[] {
-	let caregiversWithNeeds: Caregiver[] = [];
-
-	if (shift.needs.length === 1 && shift.needs[0]) {
-		const singleNeed = shift.needs[0];
-		caregiversWithNeeds = caregivers.filter((caregiver) =>
-			caregiver.skills.includes(singleNeed),
-		);
-	}
+	const filteredCaregivers = caregivers.filter((caregiver) =>
+		shift.skills.some((skill) => caregiver.skills.includes(skill)),
+	);
 
 	switch (algorithmType) {
 		case "MCDM":
 			return normalizeScores(
-				rankNursesMCDM(caregiversWithNeeds, shift, weights),
+				rankNursesMCDM(filteredCaregivers, shift, weights),
 			).sort((a, b) => b.percentage - a.percentage);
 		case "GREEDY":
 			return normalizeScores(
-				rankNursesGreedy(caregiversWithNeeds, shift, weights),
+				rankNursesGreedy(filteredCaregivers, shift, weights),
 			).sort((a, b) => b.percentage - a.percentage);
 	}
 }
@@ -465,7 +455,7 @@ export const algorithmRouter = createTRPCRouter({
 
 			const time = performance.now() * 1000;
 			const caregiverData = getNursesSortedByFit(
-				{ ...shift, patient, needs: [1] },
+				{ ...shift, patient },
 				caregiversWithDistance,
 				weights,
 				input.algorithmType,
@@ -499,13 +489,13 @@ export const algorithmRouter = createTRPCRouter({
 				startsAt: new Date(shift.startsAt),
 				endsAt: new Date(shift.endsAt),
 				caregiverId: shift.caregiverId,
+				skills: shift.skills,
 				patient: {
 					name: patient!.name,
 					location: patient!.location,
 				},
 				isNightShift: isNightShift(shift),
 				isWeekendShift: isWeekendShift(shift),
-				needs: [1],
 			}));
 
 			const weights = {
