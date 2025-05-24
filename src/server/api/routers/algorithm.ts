@@ -224,14 +224,12 @@ function assignCaregiversWithKnapsack(
 				shift.patient.location,
 			);
 			const caregiverWithDistance = { ...caregiver, distance };
-
 			const [ranked] = getNursesSortedByFit(
 				shift,
 				[caregiverWithDistance],
 				weights,
 				algorithmType,
 			);
-
 			if (ranked && ranked.percentage > 0) {
 				allPairs.push({
 					shift,
@@ -317,6 +315,12 @@ function getNursesSortedByFit(
 	}
 }
 
+type ShiftAssignment = {
+	shiftId: number;
+	caregiverId: number | null;
+	assignedCaregiver?: Caregiver;
+};
+
 function assignCaregiversToShifts(
 	shifts: Shift[],
 	caregivers: Caregiver[],
@@ -336,6 +340,21 @@ function assignCaregiversToShifts(
 		);
 
 		return knapsackAssignments.map((shift) => ({
+			shiftId: shift.id,
+			caregiverId: shift.assignedCaregiver?.id ?? null,
+			assignedCaregiver: shift.assignedCaregiver,
+		}));
+	}
+
+	if (strategyType === "TABU") {
+		const tabuAssignments = assignCaregiversWithTABUSearch(
+			shifts,
+			caregivers,
+			weights,
+			algorithmType,
+		);
+
+		return tabuAssignments.map((shift) => ({
 			shiftId: shift.id,
 			caregiverId: shift.assignedCaregiver?.id ?? null,
 			assignedCaregiver: shift.assignedCaregiver,
@@ -380,7 +399,193 @@ function assignCaregiversToShifts(
 		};
 	});
 }
+// Type for a move in the TABU search
+type TabuMove = {
+	shiftId: number;
+	caregiverId: number;
+};
 
+// Type for tracking the best move
+type BestMove = {
+	shiftId: number;
+	oldCaregiverId: number | null;
+	newCaregiverId: number;
+};
+
+function assignCaregiversWithTABUSearch(
+	shifts: Shift[],
+	caregivers: Caregiver[],
+	weights: Weights,
+	algorithmType: AlgorithmType,
+): Shift[] {
+	if (shifts.length === 0) {
+		console.warn("No shifts available to assign caregivers.");
+		return [];
+	}
+
+	// Deep clone the shifts array
+	const result: Shift[] = shifts.map((shift) => ({
+		...shift,
+		patient: { ...shift.patient },
+		isNightShift: isNightShift(shift),
+		isWeekendShift: isWeekendShift(shift),
+	}));
+
+	// Initialize with a random solution
+	const assignedCaregivers = new Set<number>();
+	for (const shift of result) {
+		const availableCaregivers = caregivers.filter(
+			(caregiver) => !assignedCaregivers.has(caregiver.id),
+		);
+
+		if (availableCaregivers.length > 0) {
+			const randomIndex = Math.floor(
+				Math.random() * availableCaregivers.length,
+			);
+			const randomCaregiver = availableCaregivers[randomIndex]!;
+			shift.assignedCaregiver = randomCaregiver;
+			assignedCaregivers.add(randomCaregiver.id);
+		}
+	}
+
+	// Calculate initial solution score
+	let currentSolution: Shift[] = [...result];
+	let currentScore: number = calculateSolutionScore(
+		currentSolution,
+		caregivers,
+		weights,
+		algorithmType,
+	);
+	let bestSolution: Shift[] = [...currentSolution];
+	let bestScore: number = currentScore;
+
+	// TABU search parameters
+	const maxIterations = 100;
+	const tabuListSize = 10;
+	const tabuList: TabuMove[] = [];
+
+	// TABU search iterations
+	for (let iteration = 0; iteration < maxIterations; iteration++) {
+		let bestNeighborSolution: Shift[] | null = null;
+		let bestNeighborScore = -Infinity;
+		let bestMove: BestMove | null = null;
+
+		// Generate and evaluate all possible moves (swaps)
+		for (let i = 0; i < currentSolution.length; i++) {
+			const shift = currentSolution[i]!;
+			const currentCaregiverId = shift.assignedCaregiver?.id ?? null;
+
+			// Try assigning each caregiver to this shift
+			for (const caregiver of caregivers) {
+				// Skip if this is the current assignment
+				if (caregiver.id === currentCaregiverId) continue;
+
+				// Check if this move is in the tabu list
+				const isTabu = tabuList.some(
+					(tabu) =>
+						tabu.shiftId === shift.id && tabu.caregiverId === caregiver.id,
+				);
+
+				// Skip tabu moves unless they lead to a better solution than the best found so far
+				if (isTabu) continue;
+
+				// Create a new solution with this move
+				const newSolution: Shift[] = [...currentSolution];
+				newSolution[i] = {
+					...shift,
+					assignedCaregiver: caregiver,
+				};
+
+				// Calculate the score of the new solution
+				const newScore: number = calculateSolutionScore(
+					newSolution,
+					caregivers,
+					weights,
+					algorithmType,
+				);
+
+				// Update best neighbor if this is better
+				if (newScore > bestNeighborScore) {
+					bestNeighborScore = newScore;
+					bestNeighborSolution = newSolution;
+					bestMove = {
+						shiftId: shift.id,
+						oldCaregiverId: currentCaregiverId,
+						newCaregiverId: caregiver.id,
+					};
+				}
+			}
+		}
+
+		// If no improving move was found, terminate
+		if (!bestNeighborSolution || !bestMove) break;
+
+		// Update current solution
+		currentSolution = bestNeighborSolution;
+		currentScore = bestNeighborScore;
+
+		// Update best solution if current is better
+		if (currentScore > bestScore) {
+			bestSolution = [...currentSolution];
+			bestScore = currentScore;
+		}
+
+		// Add the move to the tabu list
+		if (bestMove.oldCaregiverId !== null) {
+			tabuList.push({
+				shiftId: bestMove.shiftId,
+				caregiverId: bestMove.oldCaregiverId,
+			});
+		}
+
+		// Keep tabu list at maximum size
+		if (tabuList.length > tabuListSize) {
+			tabuList.shift();
+		}
+	}
+
+	return bestSolution;
+}
+
+// Helper function to calculate the total score of a solution
+function calculateSolutionScore(
+	solution: Shift[],
+	caregivers: Caregiver[],
+	weights: Weights,
+	algorithmType: AlgorithmType,
+): number {
+	let totalScore = 0;
+
+	for (const shift of solution) {
+		if (!shift.assignedCaregiver) continue;
+
+		const caregiversWithDistance: (Caregiver & { distance: number })[] = [
+			{
+				...shift.assignedCaregiver,
+				distance: parseFloat(
+					calculateHaversineDistance(
+						shift.assignedCaregiver.location,
+						shift.patient.location,
+					).toFixed(1),
+				),
+			},
+		];
+
+		const rankedNurses = getNursesSortedByFit(
+			shift,
+			caregiversWithDistance,
+			weights,
+			algorithmType,
+		);
+
+		const rankedNurse = rankedNurses[0];
+		if (rankedNurse) {
+			totalScore += rankedNurse.score;
+		}
+	}
+
+	return totalScore;
+}
 export const algorithmRouter = createTRPCRouter({
 	read: protectedProcedure
 		.input(

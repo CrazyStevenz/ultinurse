@@ -22,9 +22,9 @@ export function BulkAssignCaregiver() {
 	const [weekendWeight, setWeekendWeight] = useState(1);
 	const [distanceWeight, setDistanceWeight] = useState(1);
 	const [algorithmType, setAlgorithmType] = useState<AlgorithmType>("MCDM");
-	const [strategyType, setStrategyType] = useState<"SERIAL" | "KNAPSACK">(
-		"SERIAL",
-	);
+	const [strategyType, setStrategyType] = useState<
+		"SERIAL" | "KNAPSACK" | "TABU"
+	>("SERIAL");
 
 	const utils = api.useUtils();
 
@@ -83,6 +83,12 @@ export function BulkAssignCaregiver() {
 									onPressedChange={() => setStrategyType("KNAPSACK")}
 								>
 									Knapsack
+								</Toggle>
+								<Toggle
+									pressed={strategyType === "TABU"}
+									onPressedChange={() => setStrategyType("TABU")}
+								>
+									Tabu
 								</Toggle>
 							</div>
 
