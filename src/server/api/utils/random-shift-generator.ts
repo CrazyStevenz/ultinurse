@@ -5,7 +5,7 @@ const today = now.getDate();
 const lastDay = new Date(year, month + 1, 0).getDate();
 
 export function randomShiftGenerator(count: number, patients: number[]) {
-	return Array.from({ length: count }).map(() => {
+	return Array.from({ length: count }).map((_, index) => {
 		const randomPatient = patients[Math.floor(Math.random() * patients.length)];
 
 		const randomDay = today + Math.floor(Math.random() * (lastDay - today + 1));
@@ -25,6 +25,7 @@ export function randomShiftGenerator(count: number, patients: number[]) {
 		);
 
 		return {
+			id: index,
 			patientId: randomPatient!,
 			startsAt,
 			endsAt,
