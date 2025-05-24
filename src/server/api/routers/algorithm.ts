@@ -322,8 +322,6 @@ function assignCaregiversToShifts(
 	algorithmType: AlgorithmType,
 	strategyType: StrategyType,
 ) {
-	const assignedCaregivers = new Set<number>();
-
 	if (strategyType === "KNAPSACK") {
 		// You would need to modify assignCaregiversWithKnapsack similarly
 		const knapsackAssignments = assignCaregiversWithKnapsack(
@@ -336,7 +334,6 @@ function assignCaregiversToShifts(
 		return knapsackAssignments.map((shift) => ({
 			shiftId: shift.id,
 			caregiverId: shift.assignedCaregiver?.id ?? null,
-			assignedCaregiver: shift.assignedCaregiver,
 		}));
 	}
 
@@ -351,35 +348,25 @@ function assignCaregiversToShifts(
 		return tabuAssignments.map((shift) => ({
 			shiftId: shift.id,
 			caregiverId: shift.assignedCaregiver?.id ?? null,
-			assignedCaregiver: shift.assignedCaregiver,
 		}));
 	}
 
+	const assignedCaregivers = new Set<number>();
 	return shifts.map((shift) => {
 		const availableCaregivers = caregivers.filter(
 			(caregiver) => !assignedCaregivers.has(caregiver.id),
 		);
 
-		const caregiversWithDistance = availableCaregivers.map((caregiver) => ({
-			...caregiver,
-			distance: parseFloat(
-				calculateHaversineDistance(
-					caregiver.location,
-					shift.patient.location,
-				).toFixed(1),
-			),
-		}));
-
 		const rankedNurses = getNursesSortedByFit(
 			shift,
-			caregiversWithDistance,
+			availableCaregivers,
 			weights,
 			algorithmType,
 		);
 
 		const topRanked = rankedNurses[0];
 		const bestCaregiver = topRanked
-			? caregiversWithDistance.find((cg) => cg.name === topRanked.name)
+			? availableCaregivers.find((cg) => cg.id === topRanked.id)
 			: undefined;
 
 		if (bestCaregiver) {
@@ -389,10 +376,10 @@ function assignCaregiversToShifts(
 		return {
 			shiftId: shift.id,
 			caregiverId: bestCaregiver?.id ?? null,
-			assignedCaregiver: shift.assignedCaregiver,
 		};
 	});
 }
+
 // Type for a move in the TABU search
 type TabuMove = {
 	shiftId: number;
@@ -690,6 +677,7 @@ export const algorithmRouter = createTRPCRouter({
 				weekendWeight: input.weekendWeight,
 				distanceWeight: input.distanceWeight,
 			};
+
 			const assignedShifts = assignCaregiversToShifts(
 				computedShifts,
 				caregiversFromDB,
@@ -699,10 +687,10 @@ export const algorithmRouter = createTRPCRouter({
 			);
 
 			for (const assignedShift of assignedShifts) {
-				if (assignedShift.assignedCaregiver?.id) {
+				if (assignedShift.caregiverId) {
 					await ctx.db
 						.update(shifts)
-						.set({ caregiverId: assignedShift.assignedCaregiver.id })
+						.set({ caregiverId: assignedShift.caregiverId })
 						.where(eq(shifts.id, assignedShift.shiftId));
 				}
 			}
