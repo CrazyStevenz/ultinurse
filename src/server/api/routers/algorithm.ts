@@ -28,7 +28,7 @@ type Weights = {
 	distanceWeight: number;
 };
 
-export type Caregiver = {
+type Caregiver = {
 	id: number;
 	name: string;
 	skills: number[];
