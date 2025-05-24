@@ -29,23 +29,12 @@ export default function CaregiverPanel({
 	if (isLoading) return <Skeleton />;
 	if (error || !data) return <p>Error loading caregivers {error?.message}</p>;
 
-	const filteredCaregivers =
-		data.caregivers.filter((caregiver) => {
-			const shouldShowOutOfBounds = caregiver.outOfBounds;
-			const isMeetingAllNeeds = caregiver.meetsAllNeeds;
-			const isPartiallyMeetingNeeds = !caregiver.meetsAllNeeds;
-
-			return (
-				shouldShowOutOfBounds ?? isMeetingAllNeeds ?? isPartiallyMeetingNeeds
-			);
-		}) ?? [];
-
 	return (
 		<ul className="md:min-w-96">
 			<div className="text-sm">
 				Calculation took: {data.algorithmRuntimeInMicroseconds.toFixed(0)}μs
 			</div>
-			{filteredCaregivers.map((caregiver, index) => (
+			{data.caregivers.map((caregiver, index) => (
 				<li
 					key={caregiver.name}
 					className={`flex cursor-pointer flex-col py-4 first:rounded-t-sm last:rounded-b-sm ${
