@@ -90,10 +90,17 @@ export const shiftRouter = createTRPCRouter({
 			const durationMs = durationHours * 60 * 60 * 1000;
 			const endsAt = new Date(startsAt.getTime() + durationMs);
 
+			// Generate 1 to 3 skills, with an ID between 1 and 6
+			const skills = Array.from(
+				{ length: Math.floor(Math.random() * 3) + 1 },
+				() => Math.floor(Math.random() * 6) + 1,
+			);
+
 			return {
 				patientId: randomPatient!.id,
 				startsAt,
 				endsAt,
+				skills,
 			};
 		});
 
