@@ -120,15 +120,12 @@ function calculateFitScoreMCDM(
 		outOfBounds = true;
 	}
 
-	const nightShiftEligible = !caregiver.prefersNights;
-	const weekendShiftEligible = !caregiver.prefersWeekends;
+	const nightShiftEligible = isNightShift(shift) === caregiver.prefersNights;
+	const weekendShiftEligible =
+		isWeekendShift(shift) === caregiver.prefersWeekends;
 
-	if (isNightShift(shift) === nightShiftEligible) {
-		score += weights.nightWeight * 5;
-	}
-	if (isWeekendShift(shift) === weekendShiftEligible) {
-		score += weights.weekendWeight * 5;
-	}
+	if (nightShiftEligible) score += weights.nightWeight * 5;
+	if (weekendShiftEligible) score += weights.weekendWeight * 5;
 
 	return {
 		id: caregiver.id,
@@ -153,11 +150,6 @@ function calculateFitScoreGreedy(
 		shift.patient.location,
 	);
 
-	const outOfBounds = distance > HARD_DISTANCE;
-	const optimalDistance = distance < SOFT_DISTANCE;
-	const nightShiftEligible = caregiver.prefersNights;
-	const weekendShiftEligible = caregiver.prefersWeekends;
-
 	let score = 0;
 
 	if (distance < SOFT_DISTANCE) {
@@ -168,12 +160,12 @@ function calculateFitScoreGreedy(
 		score -= 10;
 	}
 
-	if (isNightShift(shift) && nightShiftEligible) {
-		score += weights.nightWeight * 5;
-	}
-	if (isWeekendShift(shift) && weekendShiftEligible) {
-		score += weights.weekendWeight * 5;
-	}
+	const nightShiftEligible = isNightShift(shift) === caregiver.prefersNights;
+	const weekendShiftEligible =
+		isWeekendShift(shift) === caregiver.prefersWeekends;
+
+	if (nightShiftEligible) score += weights.nightWeight * 5;
+	if (weekendShiftEligible) score += weights.weekendWeight * 5;
 
 	return {
 		id: caregiver.id,
@@ -181,8 +173,8 @@ function calculateFitScoreGreedy(
 		score,
 		distance,
 		meetsAllNeeds: shift.skills.every((c) => caregiver.skills.includes(c)),
-		outOfBounds,
-		optimalDistance,
+		outOfBounds: distance > HARD_DISTANCE,
+		optimalDistance: distance < SOFT_DISTANCE,
 		nightShiftEligible,
 		weekendShiftEligible,
 	};
@@ -198,12 +190,11 @@ function calculateFitScoreSimulatedAnnealing(
 		shift.patient.location,
 	);
 
-	const outOfBounds = distance > HARD_DISTANCE;
-	const optimalDistance = distance < SOFT_DISTANCE;
-	const nightShiftEligible = caregiver.prefersNights;
-	const weekendShiftEligible = caregiver.prefersWeekends;
-	const skillMatch = shift.skills.filter((skill) => caregiver.skills.includes(skill)).length;
-	const skillMatchPercentage = shift.skills.length > 0 ? skillMatch / shift.skills.length : 0;
+	const skillMatch = shift.skills.filter((skill) =>
+		caregiver.skills.includes(skill),
+	).length;
+	const skillMatchPercentage =
+		shift.skills.length > 0 ? skillMatch / shift.skills.length : 0;
 
 	// Base score calculation
 	let score = skillMatchPercentage * 20; // Up to 20 points for skill match
@@ -213,20 +204,25 @@ function calculateFitScoreSimulatedAnnealing(
 		score += 15; // Higher bonus for optimal distance
 	} else if (distance <= HARD_DISTANCE) {
 		// Linear penalty based on distance and weight
-		score += 15 - ((distance - SOFT_DISTANCE) / (HARD_DISTANCE - SOFT_DISTANCE)) * 10 * weights.distanceWeight;
+		score +=
+			15 -
+			((distance - SOFT_DISTANCE) / (HARD_DISTANCE - SOFT_DISTANCE)) *
+				10 *
+				weights.distanceWeight;
 	} else {
 		score -= 15 * weights.distanceWeight; // Higher penalty for out of bounds
 	}
 
-	// Night shift preference
-	if (isNightShift(shift)) {
-		score += nightShiftEligible ? weights.nightWeight * 7 : -weights.nightWeight * 3;
-	}
+	const nightShiftEligible = isNightShift(shift) === caregiver.prefersNights;
+	const weekendShiftEligible =
+		isWeekendShift(shift) === caregiver.prefersWeekends;
 
-	// Weekend shift preference
-	if (isWeekendShift(shift)) {
-		score += weekendShiftEligible ? weights.weekendWeight * 7 : -weights.weekendWeight * 3;
-	}
+	score += nightShiftEligible
+		? weights.nightWeight * 7
+		: -weights.nightWeight * 3;
+	score += weekendShiftEligible
+		? weights.weekendWeight * 7
+		: -weights.weekendWeight * 3;
 
 	return {
 		id: caregiver.id,
@@ -234,8 +230,8 @@ function calculateFitScoreSimulatedAnnealing(
 		score,
 		distance,
 		meetsAllNeeds: shift.skills.every((c) => caregiver.skills.includes(c)),
-		outOfBounds,
-		optimalDistance,
+		outOfBounds: distance > HARD_DISTANCE,
+		optimalDistance: distance < SOFT_DISTANCE,
 		nightShiftEligible,
 		weekendShiftEligible,
 	};
@@ -383,12 +379,6 @@ function getNursesSortedByFit(
 	}
 }
 
-type ShiftAssignment = {
-	shiftId: number;
-	caregiverId: number | null;
-	assignedCaregiver?: Caregiver;
-};
-
 function assignCaregiversToShifts(
 	shifts: Shift[],
 	caregivers: Caregiver[],
@@ -430,12 +420,13 @@ function assignCaregiversToShifts(
 	}
 
 	if (algorithmType === "SIMULATED_ANNEALING") {
-		const simulatedAnnealingAssignments = assignCaregiversWithSimulatedAnnealing(
-			shifts,
-			caregivers,
-			weights,
-			algorithmType,
-		);
+		const simulatedAnnealingAssignments =
+			assignCaregiversWithSimulatedAnnealing(
+				shifts,
+				caregivers,
+				weights,
+				algorithmType,
+			);
 
 		return simulatedAnnealingAssignments.map((shift) => ({
 			shiftId: shift.id,
@@ -562,16 +553,17 @@ function assignCaregiversWithSimulatedAnnealing(
 
 			// Select a random caregiver that's not currently assigned to this shift
 			const availableCaregivers = caregivers.filter(
-				(caregiver) => !shift.assignedCaregiver || caregiver.id !== shift.assignedCaregiver.id
+				(caregiver) =>
+					!shift.assignedCaregiver ||
+					caregiver.id !== shift.assignedCaregiver.id,
 			);
 
 			if (availableCaregivers.length === 0) continue;
 
-			const caregiverIndex = Math.floor(Math.random() * availableCaregivers.length);
+			const caregiverIndex = Math.floor(
+				Math.random() * availableCaregivers.length,
+			);
 			const newCaregiver = availableCaregivers[caregiverIndex]!;
-
-			// Store the old caregiver for potential rollback
-			const oldCaregiver = shift.assignedCaregiver;
 
 			// Make the swap
 			newSolution[shiftIndex] = {
