@@ -146,9 +146,6 @@ export function AssignCaregiver({
 								weekendWeight={weekendWeight}
 								distanceWeight={distanceWeight}
 								algorithmType={algorithmType}
-								showMeetsAllNeeds={true}
-								showPartiallyMeetsNeeds={true}
-								showOutOfBounds={true}
 								assignCaregiver={(caregiverId: number) =>
 									mutate({ shiftId, caregiverId })
 								}

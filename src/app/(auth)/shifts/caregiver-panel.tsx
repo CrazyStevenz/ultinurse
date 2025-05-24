@@ -9,9 +9,6 @@ export default function CaregiverPanel({
 	weekendWeight,
 	distanceWeight,
 	algorithmType,
-	showMeetsAllNeeds,
-	showPartiallyMeetsNeeds,
-	showOutOfBounds,
 	assignCaregiver,
 }: {
 	shiftId: number;
@@ -19,9 +16,6 @@ export default function CaregiverPanel({
 	weekendWeight: number;
 	distanceWeight: number;
 	algorithmType: AlgorithmType;
-	showMeetsAllNeeds: boolean;
-	showPartiallyMeetsNeeds: boolean;
-	showOutOfBounds: boolean;
 	assignCaregiver?: (v: number) => void;
 }) {
 	const { data, isLoading, error } = api.algorithm.read.useQuery({
@@ -37,13 +31,12 @@ export default function CaregiverPanel({
 
 	const filteredCaregivers =
 		data.caregivers.filter((caregiver) => {
-			const shouldShowOutOfBounds = caregiver.outOfBounds && showOutOfBounds;
-			const isMeetingAllNeeds = caregiver.meetsAllNeeds && showMeetsAllNeeds;
-			const isPartiallyMeetingNeeds =
-				!caregiver.meetsAllNeeds && showPartiallyMeetsNeeds;
+			const shouldShowOutOfBounds = caregiver.outOfBounds;
+			const isMeetingAllNeeds = caregiver.meetsAllNeeds;
+			const isPartiallyMeetingNeeds = !caregiver.meetsAllNeeds;
 
 			return (
-				shouldShowOutOfBounds || isMeetingAllNeeds || isPartiallyMeetingNeeds
+				shouldShowOutOfBounds ?? isMeetingAllNeeds ?? isPartiallyMeetingNeeds
 			);
 		}) ?? [];
 
