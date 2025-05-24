@@ -50,64 +50,6 @@ type Shift = {
 	assignedCaregiver?: Caregiver;
 };
 
-const MOCK_SHIFTS: Shift[] = [
-	{
-		id: 1,
-		patientId: 1,
-		startsAt: new Date("2025-04-19T08:00:00"),
-		endsAt: new Date("2025-04-19T16:00:00"),
-		needs: [1],
-		patient: {
-			name: "Mock patient 1",
-			location: [40.595312, 22.946153],
-		},
-	},
-	{
-		id: 2,
-		patientId: 1,
-		startsAt: new Date("2025-04-20T22:00:00"),
-		endsAt: new Date("2025-04-21T06:00:00"),
-		needs: [2, 4],
-		patient: {
-			name: "Mock patient 2",
-			location: [40.694887, 22.947355],
-		},
-	},
-	{
-		id: 3,
-		patientId: 2,
-		startsAt: new Date("2025-04-21T14:00:00"),
-		endsAt: new Date("2025-04-21T22:00:00"),
-		needs: [3],
-		patient: {
-			name: "Mock patient 3",
-			location: [40.611505, 22.947786],
-		},
-	},
-	{
-		id: 4,
-		patientId: 2,
-		startsAt: new Date("2025-04-21T23:00:00"),
-		endsAt: new Date("2025-04-22T07:00:00"),
-		needs: [1, 5],
-		patient: {
-			name: "Mock patient 4",
-			location: [40.635793, 22.94806],
-		},
-	},
-	{
-		id: 5,
-		patientId: 3,
-		startsAt: new Date("2025-04-18T10:00:00"),
-		endsAt: new Date("2025-04-18T18:00:00"),
-		needs: [2],
-		patient: {
-			name: "Mock patient 5",
-			location: [40.550989, 22.947228],
-		},
-	},
-];
-
 type NurseData = {
 	id: number;
 	name: string;
