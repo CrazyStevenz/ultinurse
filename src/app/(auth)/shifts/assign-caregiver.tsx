@@ -91,6 +91,12 @@ export function AssignCaregiver({
 								>
 									Greedy
 								</Toggle>
+								<Toggle
+									pressed={algorithmType === "TOPSIS"}
+									onPressedChange={() => setAlgorithmType("TOPSIS")}
+								>
+									TOPSIS
+								</Toggle>
 							</div>
 
 							<div className="mt-4">
