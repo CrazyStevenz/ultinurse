@@ -7,6 +7,7 @@ import type {
 	StrategyType,
 } from "../../server/api/routers/algorithm";
 import { Toggle } from "../_components/ui/toggle";
+import Loading from "../(auth)/loading";
 
 export default function Stats() {
 	const [nightWeight, setNightWeight] = useState(1);
@@ -15,23 +16,8 @@ export default function Stats() {
 	const [algorithmType, setAlgorithmType] = useState<AlgorithmType>("MCDM");
 	const [strategyType, setStrategyType] = useState<StrategyType>("SERIAL");
 
-	const { data, isLoading } = api.algorithm.readStats.useQuery({
-		nightWeight,
-		weekendWeight,
-		distanceWeight,
-		algorithmType,
-		strategyType,
-	});
-
-	if (isLoading || !data) return "Loading...";
-
 	return (
 		<>
-			<div>Calculation took: {data.algorithmRuntimeInMs.toFixed(0)}ms</div>
-
-			<div>All needs: {data.percentageOfMeetsAllNeeds}%</div>
-			<div>Some needs: {data.percentageOfMeetsSomeNeeds}%</div>
-
 			<div className="mt-4">
 				<h3 className="mb-2 font-semibold">Algorithm:</h3>
 				<div className="space-x-2">
@@ -74,6 +60,12 @@ export default function Stats() {
 						onPressedChange={() => setStrategyType("TABU")}
 					>
 						Tabu
+					</Toggle>
+					<Toggle
+						pressed={strategyType === "SIMULATED_ANNEALING"}
+						onPressedChange={() => setStrategyType("SIMULATED_ANNEALING")}
+					>
+						Simulated Annealing
 					</Toggle>
 				</div>
 
@@ -122,6 +114,49 @@ export default function Stats() {
 					/>
 				</div>
 			</div>
+			<br />
+			<br />
+			<StatsPanel
+				nightWeight={nightWeight}
+				weekendWeight={weekendWeight}
+				distanceWeight={distanceWeight}
+				algorithmType={algorithmType}
+				strategyType={strategyType}
+			/>
+		</>
+	);
+}
+
+function StatsPanel({
+	nightWeight,
+	weekendWeight,
+	distanceWeight,
+	algorithmType,
+	strategyType,
+}: {
+	nightWeight: number;
+	weekendWeight: number;
+	distanceWeight: number;
+	algorithmType: AlgorithmType;
+	strategyType: StrategyType;
+}) {
+	const { data, isLoading } = api.algorithm.readStats.useQuery({
+		nightWeight,
+		weekendWeight,
+		distanceWeight,
+		algorithmType,
+		strategyType,
+	});
+
+	if (isLoading || !data) return <Loading />;
+
+	return (
+		<>
+			<div>Calculation took: {data.algorithmRuntimeInMs.toFixed(0)}ms</div>
+			<div>All needs: {data.percentageOfMeetsAllNeeds}%</div>
+			<div>Some needs: {data.percentageOfMeetsSomeNeeds}%</div>
+			<div>Matches night: {data.percentageOfMatchesNight}%</div>
+			<div>Matches weekend: {data.percentageOfMatchesWeekend}%</div>
 		</>
 	);
 }
