@@ -173,9 +173,9 @@ function calculateFitScoreGreedy(
 	};
 }
 
-function calculateFitScoreRandom() {
+function calculateFitScoreRandom(caregiverId: number) {
 	return {
-		id: 1,
+		id: caregiverId,
 		name: "",
 		score: 1,
 		distance: 1,
@@ -330,7 +330,9 @@ function getNursesSortedByFit(
 				rankNursesGreedy(caregiversToUse, shift, weights),
 			).sort((a, b) => b.percentage - a.percentage);
 		case "RANDOM":
-			return caregivers.map(() => calculateFitScoreRandom());
+			return caregivers.map((caregiver) =>
+				calculateFitScoreRandom(caregiver.id),
+			);
 	}
 }
 
