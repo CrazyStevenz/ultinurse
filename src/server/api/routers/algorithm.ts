@@ -15,6 +15,7 @@ const AlgorithmType = {
 	MCDM: "MCDM",
 	GREEDY: "GREEDY",
 	RANDOM: "RANDOM",
+	TOPSIS: "TOPSIS",
 } as const;
 export type AlgorithmType = keyof typeof AlgorithmType;
 
@@ -72,9 +73,20 @@ function rankNursesMCDM(
 	patient: Shift,
 	weights: Weights,
 ) {
-	return caregivers.map((caregiver) =>
-		calculateFitScoreMCDM(caregiver, patient, weights),
-	);
+	// If no caregivers, return empty array
+	if (caregivers.length === 0) {
+		return [];
+	}
+
+	// If only one caregiver, use simple scoring
+	if (caregivers.length === 1) {
+		return caregivers.map((caregiver) =>
+			calculateFitScoreMCDM(caregiver, patient, weights),
+		);
+	}
+
+	// For multiple caregivers, use TOPSIS approach
+	return calculatefitScoreTOPSIS(caregivers, patient, weights);
 }
 
 function rankNursesGreedy(
@@ -131,6 +143,199 @@ function calculateFitScoreMCDM(
 		nightShiftEligible,
 		weekendShiftEligible,
 	};
+}
+
+function calculatefitScoreTOPSIS(
+	caregivers: Caregiver[],
+	shift: Shift,
+	weights: Weights,
+) {
+	// Step 1: Create decision matrix with criteria for each caregiver
+	const decisionMatrix = caregivers.map((caregiver) => {
+		// Calculate criteria values
+		const matchingCompetencies =
+			shift.skills.filter((c) => caregiver.skills.includes(c)).length /
+			shift.skills.length; // Normalized to [0,1]
+
+		const distance = calculateHaversineDistance(
+			caregiver.location,
+			shift.patient.location,
+		);
+
+		// Normalize distance to [0,1] where 1 is best (closest)
+		// Values beyond HARD_DISTANCE are heavily penalized
+		let normalizedDistance = 0;
+		if (distance < SOFT_DISTANCE) {
+			normalizedDistance = 1;
+		} else if (distance <= HARD_DISTANCE) {
+			normalizedDistance =
+				1 - (distance - SOFT_DISTANCE) / (HARD_DISTANCE - SOFT_DISTANCE);
+		}
+
+		// Night shift preference (1 if matches, 0 if not)
+		const nightShiftMatch =
+			isNightShift(shift) === !caregiver.prefersNights ? 1 : 0;
+
+		// Weekend shift preference (1 if matches, 0 if not)
+		const weekendShiftMatch =
+			isWeekendShift(shift) === !caregiver.prefersWeekends ? 1 : 0;
+
+		return {
+			id: caregiver.id,
+			name: caregiver.name,
+			criteria: {
+				competencies: matchingCompetencies,
+				distance: normalizedDistance,
+				nightShift: nightShiftMatch,
+				weekendShift: weekendShiftMatch,
+			},
+			// Original data for final result
+			distance,
+			meetsAllNeeds: shift.skills.every((c) => caregiver.skills.includes(c)),
+			outOfBounds: distance > HARD_DISTANCE,
+			optimalDistance: distance < SOFT_DISTANCE,
+			nightShiftEligible: !caregiver.prefersNights,
+			weekendShiftEligible: !caregiver.prefersWeekends,
+		};
+	});
+
+	// Step 2: Normalize the decision matrix using vector normalization
+	const criteriaNames = [
+		"competencies",
+		"distance",
+		"nightShift",
+		"weekendShift",
+	] as const;
+
+	// Calculate the square root of sum of squares for each criterion
+	const normalizationFactors = criteriaNames.reduce(
+		(factors, criterion) => {
+			const sumOfSquares = decisionMatrix.reduce(
+				(sum, caregiver) => sum + Math.pow(caregiver.criteria[criterion], 2),
+				0,
+			);
+			factors[criterion] = Math.sqrt(sumOfSquares) || 1; // Avoid division by zero
+			return factors;
+		},
+		{} as Record<(typeof criteriaNames)[number], number>,
+	);
+
+	// Normalize each value in the decision matrix
+	const normalizedMatrix = decisionMatrix.map((caregiver) => {
+		const normalizedCriteria = criteriaNames.reduce(
+			(normalized, criterion) => {
+				normalized[criterion] =
+					caregiver.criteria[criterion] / normalizationFactors[criterion];
+				return normalized;
+			},
+			{} as Record<(typeof criteriaNames)[number], number>,
+		);
+
+		return {
+			...caregiver,
+			normalizedCriteria,
+		};
+	});
+
+	// Step 3: Apply weights to the normalized matrix
+	const weightedMatrix = normalizedMatrix.map((caregiver) => {
+		const weightedCriteria = {
+			competencies: caregiver.normalizedCriteria.competencies * 1, // Base weight for competencies
+			distance: caregiver.normalizedCriteria.distance * weights.distanceWeight,
+			nightShift: caregiver.normalizedCriteria.nightShift * weights.nightWeight,
+			weekendShift:
+				caregiver.normalizedCriteria.weekendShift * weights.weekendWeight,
+		};
+
+		return {
+			...caregiver,
+			weightedCriteria,
+		};
+	});
+
+	// Step 4: Determine ideal and negative-ideal solutions
+	const ideal = criteriaNames.reduce(
+		(ideal, criterion) => {
+			// For all criteria, higher is better in our case
+			ideal[criterion] = Math.max(
+				...weightedMatrix.map((c) => c.weightedCriteria[criterion]),
+			);
+			return ideal;
+		},
+		{} as Record<(typeof criteriaNames)[number], number>,
+	);
+
+	const negativeIdeal = criteriaNames.reduce(
+		(negIdeal, criterion) => {
+			// For all criteria, lower is worse in our case
+			negIdeal[criterion] = Math.min(
+				...weightedMatrix.map((c) => c.weightedCriteria[criterion]),
+			);
+			return negIdeal;
+		},
+		{} as Record<(typeof criteriaNames)[number], number>,
+	);
+
+	// Step 5: Calculate separation measures
+	const separationMeasures = weightedMatrix.map((caregiver) => {
+		// Distance to ideal solution (Euclidean distance)
+		const distanceToIdeal = Math.sqrt(
+			criteriaNames.reduce(
+				(sum, criterion) =>
+					sum +
+					Math.pow(caregiver.weightedCriteria[criterion] - ideal[criterion], 2),
+				0,
+			),
+		);
+
+		// Distance to negative-ideal solution
+		const distanceToNegativeIdeal = Math.sqrt(
+			criteriaNames.reduce(
+				(sum, criterion) =>
+					sum +
+					Math.pow(
+						caregiver.weightedCriteria[criterion] - negativeIdeal[criterion],
+						2,
+					),
+				0,
+			),
+		);
+
+		return {
+			...caregiver,
+			distanceToIdeal,
+			distanceToNegativeIdeal,
+		};
+	});
+
+	// Step 6: Calculate relative closeness to the ideal solution
+	const rankedCaregivers = separationMeasures.map((caregiver) => {
+		const totalDistance =
+			caregiver.distanceToIdeal + caregiver.distanceToNegativeIdeal;
+		// Relative closeness (0 to 1, where 1 is closest to ideal)
+		const relativeCloseness =
+			totalDistance === 0
+				? 0
+				: caregiver.distanceToNegativeIdeal / totalDistance;
+
+		// Scale to a score similar to the original algorithm (0-100)
+		const score = relativeCloseness * 100;
+
+		return {
+			id: caregiver.id,
+			name: caregiver.name,
+			score,
+			distance: caregiver.distance,
+			meetsAllNeeds: caregiver.meetsAllNeeds,
+			outOfBounds: caregiver.outOfBounds,
+			optimalDistance: caregiver.optimalDistance,
+			nightShiftEligible: caregiver.nightShiftEligible,
+			weekendShiftEligible: caregiver.weekendShiftEligible,
+		};
+	});
+
+	// Return the ranked caregivers
+	return rankedCaregivers;
 }
 
 function calculateFitScoreGreedy(
@@ -324,6 +529,11 @@ function getNursesSortedByFit(
 		case "MCDM":
 			return normalizeScores(
 				rankNursesMCDM(caregiversToUse, shift, weights),
+			).sort((a, b) => b.percentage - a.percentage);
+		case "TOPSIS":
+			// TOPSIS is implemented within rankNursesMCDM for multiple caregivers
+			return normalizeScores(
+				calculatefitScoreTOPSIS(caregiversToUse, shift, weights),
 			).sort((a, b) => b.percentage - a.percentage);
 		case "GREEDY":
 			return normalizeScores(

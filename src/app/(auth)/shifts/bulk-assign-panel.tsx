@@ -69,6 +69,12 @@ export function BulkAssignCaregiver() {
 								>
 									Greedy
 								</Toggle>
+								<Toggle
+									pressed={algorithmType === "TOPSIS"}
+									onPressedChange={() => setAlgorithmType("TOPSIS")}
+								>
+									TOPSIS
+								</Toggle>
 							</div>
 
 							<h3 className="mb-2 mt-4 font-semibold">Strategy:</h3>
