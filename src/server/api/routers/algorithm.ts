@@ -73,20 +73,9 @@ function rankNursesMCDM(
 	patient: Shift,
 	weights: Weights,
 ) {
-	// If no caregivers, return empty array
-	if (caregivers.length === 0) {
-		return [];
-	}
-
-	// If only one caregiver, use simple scoring
-	if (caregivers.length === 1) {
-		return caregivers.map((caregiver) =>
-			calculateFitScoreMCDM(caregiver, patient, weights),
-		);
-	}
-
-	// For multiple caregivers, use TOPSIS approach
-	return calculatefitScoreTOPSIS(caregivers, patient, weights);
+	return caregivers.map((caregiver) =>
+		calculateFitScoreMCDM(caregiver, patient, weights),
+	);
 }
 
 function rankNursesGreedy(
@@ -129,8 +118,8 @@ function calculateFitScoreMCDM(
 	const weekendShiftEligible =
 		isWeekendShift(shift) === caregiver.prefersWeekends;
 
-	if (nightShiftEligible) score += weights.nightWeight * 5;
-	if (weekendShiftEligible) score += weights.weekendWeight * 5;
+	if (nightShiftEligible) score += weights.nightWeight / 125;
+	if (weekendShiftEligible) score += weights.weekendWeight / 125;
 
 	return {
 		id: caregiver.id,
