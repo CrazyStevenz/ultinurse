@@ -28,6 +28,12 @@ export default function Stats() {
 						MCDM
 					</Toggle>
 					<Toggle
+						pressed={algorithmType === "TOPSIS"}
+						onPressedChange={() => setAlgorithmType("TOPSIS")}
+					>
+						TOPSIS
+					</Toggle>
+					<Toggle
 						pressed={algorithmType === "GREEDY"}
 						onPressedChange={() => setAlgorithmType("GREEDY")}
 					>

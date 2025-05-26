@@ -55,7 +55,7 @@ export function BulkAssignCaregiver() {
 				{!isPending ? (
 					<>
 						<div className="mt-4">
-							<h3 className="mb-2 font-semibold">Algorithm:</h3>
+							<h3 className="mb-2 font-semibold">Initial Algorithm:</h3>
 							<div className="space-x-2">
 								<Toggle
 									pressed={algorithmType === "MCDM"}
@@ -64,20 +64,20 @@ export function BulkAssignCaregiver() {
 									MCDM
 								</Toggle>
 								<Toggle
-									pressed={algorithmType === "GREEDY"}
-									onPressedChange={() => setAlgorithmType("GREEDY")}
-								>
-									Greedy
-								</Toggle>
-								<Toggle
 									pressed={algorithmType === "TOPSIS"}
 									onPressedChange={() => setAlgorithmType("TOPSIS")}
 								>
 									TOPSIS
 								</Toggle>
+								<Toggle
+									pressed={algorithmType === "GREEDY"}
+									onPressedChange={() => setAlgorithmType("GREEDY")}
+								>
+									Greedy
+								</Toggle>
 							</div>
 
-							<h3 className="mb-2 mt-4 font-semibold">Strategy:</h3>
+							<h3 className="mb-2 mt-4 font-semibold">Executor Algorithm:</h3>
 							<div className="space-x-2">
 								<Toggle
 									pressed={strategyType === "SERIAL"}
