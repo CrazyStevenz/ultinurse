@@ -575,8 +575,6 @@ function assignCaregiversToShifts(
 			shifts,
 			caregivers,
 			weights,
-			algorithmType,
-			unfiltered,
 		);
 
 		return tabuAssignments.map((shift) => ({
@@ -706,11 +704,9 @@ function assignCaregiversWithSimulatedAnnealing(
 
 	// Calculate initial solution score
 	let currentSolution: Shift[] = [...result];
-	let currentScore: number = calculateSolutionScore(
+	let currentScore: number = calculateSolutionScoreUsingMCDM(
 		currentSolution,
 		weights,
-		algorithmType,
-		unfiltered,
 	);
 	let bestSolution: Shift[] = [...currentSolution];
 	let bestScore: number = currentScore;
@@ -827,12 +823,7 @@ function assignCaregiversWithSimulatedAnnealing(
 			}
 
 			// Calculate new solution score
-			const newScore = calculateSolutionScore(
-				newSolution,
-				weights,
-				algorithmType,
-				unfiltered,
-			);
+			const newScore = calculateSolutionScoreUsingMCDM(newSolution, weights);
 
 			// Decide whether to accept the new solution
 			const scoreDifference = newScore - currentScore;
@@ -917,8 +908,6 @@ function assignCaregiversWithTABUSearch(
 	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
-	algorithmType: AlgorithmType,
-	unfiltered: boolean,
 ): Shift[] {
 	if (shifts.length === 0) {
 		console.warn("No shifts available to assign caregivers.");
@@ -952,18 +941,16 @@ function assignCaregiversWithTABUSearch(
 
 	// Calculate initial solution score
 	let currentSolution: Shift[] = [...result];
-	let currentScore: number = calculateSolutionScore(
+	let currentScore: number = calculateSolutionScoreUsingMCDM(
 		currentSolution,
 		weights,
-		algorithmType,
-		unfiltered,
 	);
 	let bestSolution: Shift[] = [...currentSolution];
 	let bestScore: number = currentScore;
 
 	// TABU search parameters
 	const maxIterations = 100;
-	const tabuListSize = 10;
+	const tabuListSize = 15;
 	const tabuList: TabuMove[] = [];
 
 	// TABU search iterations
@@ -999,11 +986,9 @@ function assignCaregiversWithTABUSearch(
 				};
 
 				// Calculate the score of the new solution
-				const newScore: number = calculateSolutionScore(
+				const newScore: number = calculateSolutionScoreUsingMCDM(
 					newSolution,
 					weights,
-					algorithmType,
-					unfiltered,
 				);
 
 				// Update best neighbor if this is better
@@ -1049,45 +1034,22 @@ function assignCaregiversWithTABUSearch(
 	return bestSolution;
 }
 
-// Helper function to calculate the total score of a solution
-function calculateSolutionScore(
+function calculateSolutionScoreUsingMCDM(
 	solution: Shift[],
 	weights: Weights,
-	algorithmType: AlgorithmType,
-	unfiltered: boolean,
 ): number {
-	let totalScore = 0;
+	let total = 0;
+	const usedCaregivers = new Set<number>();
 
 	for (const shift of solution) {
-		if (!shift.assignedCaregiver) continue;
-
-		const caregiversWithDistance: (Caregiver & { distance: number })[] = [
-			{
-				...shift.assignedCaregiver,
-				distance: parseFloat(
-					calculateHaversineDistance(
-						shift.assignedCaregiver.location,
-						shift.patient.location,
-					).toFixed(1),
-				),
-			},
-		];
-
-		const rankedNurses = getNursesSortedByFit(
-			shift,
-			caregiversWithDistance,
-			weights,
-			algorithmType,
-			unfiltered,
-		);
-
-		const rankedNurse = rankedNurses[0];
-		if (rankedNurse) {
-			totalScore += rankedNurse.score;
-		}
+		const caregiver = shift.assignedCaregiver;
+		if (!caregiver) continue;
+		const fit = calculateFitScoreMCDM(caregiver, shift, weights);
+		total += fit.score;
+		usedCaregivers.add(caregiver.id);
 	}
 
-	return totalScore;
+	return total + usedCaregivers.size;
 }
 
 export const algorithmRouter = createTRPCRouter({
@@ -1241,7 +1203,7 @@ export const algorithmRouter = createTRPCRouter({
 			}
 
 			const randomShifts = randomShiftGenerator(
-				1000,
+				100,
 				dbPatients.map((patient) => patient.id),
 			).map((randomShift) => {
 				const patient = dbPatients.find(
@@ -1265,7 +1227,7 @@ export const algorithmRouter = createTRPCRouter({
 			const time = performance.now();
 			const data = assignCaregiversToShifts(
 				randomShifts,
-				randomCaregiverGenerator(1000),
+				randomCaregiverGenerator(100),
 				weights,
 				input.algorithmType,
 				input.strategyType,
