@@ -49,7 +49,7 @@ export function BulkAssignCaregiver() {
 				</DialogHeader>
 
 				<DialogDescription>
-					All caregivers will be assigned to an available shift
+					All caregivers will be assigned to an available shift.
 				</DialogDescription>
 
 				{!isPending ? (
