@@ -428,6 +428,8 @@ function assignCaregiversToShifts(
 			shifts,
 			caregivers,
 			weights,
+			algorithmType,
+			unfiltered,
 		);
 
 		return tabuAssignments.map((shift) => ({
@@ -557,9 +559,12 @@ function assignCaregiversWithSimulatedAnnealing(
 
 	// Calculate initial solution score
 	let currentSolution: Shift[] = [...result];
-	let currentScore: number = calculateSolutionScoreUsingMCDM(
+	let currentScore: number = calculateSolutionScore(
 		currentSolution,
 		weights,
+		algorithmType,
+		caregivers,
+		unfiltered,
 	);
 	let bestSolution: Shift[] = [...currentSolution];
 	let bestScore: number = currentScore;
@@ -676,7 +681,13 @@ function assignCaregiversWithSimulatedAnnealing(
 			}
 
 			// Calculate new solution score
-			const newScore = calculateSolutionScoreUsingMCDM(newSolution, weights);
+			const newScore: number = calculateSolutionScore(
+				currentSolution,
+				weights,
+				algorithmType,
+				caregivers,
+				unfiltered,
+			);
 
 			// Decide whether to accept the new solution
 			const scoreDifference = newScore - currentScore;
@@ -761,6 +772,8 @@ function assignCaregiversWithTABUSearch(
 	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
+	algorithmType: AlgorithmType,
+	unfiltered: boolean,
 ): Shift[] {
 	if (shifts.length === 0) {
 		console.warn("No shifts available to assign caregivers.");
@@ -794,9 +807,12 @@ function assignCaregiversWithTABUSearch(
 
 	// Calculate initial solution score
 	let currentSolution: Shift[] = [...result];
-	let currentScore: number = calculateSolutionScoreUsingMCDM(
+	let currentScore: number = calculateSolutionScore(
 		currentSolution,
 		weights,
+		algorithmType,
+		caregivers,
+		unfiltered,
 	);
 	let bestSolution: Shift[] = [...currentSolution];
 	let bestScore: number = currentScore;
@@ -839,9 +855,12 @@ function assignCaregiversWithTABUSearch(
 				};
 
 				// Calculate the score of the new solution
-				const newScore: number = calculateSolutionScoreUsingMCDM(
-					newSolution,
+				const newScore: number = calculateSolutionScore(
+					currentSolution,
 					weights,
+					algorithmType,
+					caregivers,
+					unfiltered,
 				);
 
 				// Update best neighbor if this is better
@@ -887,22 +906,36 @@ function assignCaregiversWithTABUSearch(
 	return bestSolution;
 }
 
-function calculateSolutionScoreUsingMCDM(
+function calculateSolutionScore(
 	solution: Shift[],
 	weights: Weights,
+	algorithmType: AlgorithmType,
+	caregivers: Caregiver[],
+	unfiltered: boolean,
 ): number {
 	let total = 0;
 	const usedCaregivers = new Set<number>();
 
 	for (const shift of solution) {
-		const caregiver = shift.assignedCaregiver;
-		if (!caregiver) continue;
-		const fit = calculateFitScoreMCDM(caregiver, shift, weights);
-		total += fit.score;
-		usedCaregivers.add(caregiver.id);
+		const sortedCaregivers = getNursesSortedByFit(
+			shift,
+			caregivers,
+			weights,
+			algorithmType,
+			unfiltered,
+		);
+
+		const bestFit = sortedCaregivers.find(
+			(caregiver) => !usedCaregivers.has(caregiver.id),
+		);
+
+		if (bestFit) {
+			total += bestFit.percentage ?? 0;
+			usedCaregivers.add(bestFit.id);
+		}
 	}
 
-	return total + usedCaregivers.size;
+	return total;
 }
 
 export const algorithmRouter = createTRPCRouter({
