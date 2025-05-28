@@ -21,7 +21,6 @@ export type AlgorithmType = keyof typeof AlgorithmType;
 
 const StrategyType = {
 	SERIAL: "SERIAL",
-	KNAPSACK: "KNAPSACK",
 	TABU: "TABU",
 	SIMULATED_ANNEALING: "SIMULATED_ANNEALING",
 } as const;
