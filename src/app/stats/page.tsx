@@ -50,12 +50,6 @@ export default function Stats() {
 						Serial
 					</Toggle>
 					<Toggle
-						pressed={strategyType === "KNAPSACK"}
-						onPressedChange={() => setStrategyType("KNAPSACK")}
-					>
-						Knapsack
-					</Toggle>
-					<Toggle
 						pressed={strategyType === "TABU"}
 						onPressedChange={() => setStrategyType("TABU")}
 					>
