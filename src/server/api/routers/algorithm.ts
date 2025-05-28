@@ -21,7 +21,6 @@ export type AlgorithmType = keyof typeof AlgorithmType;
 
 const StrategyType = {
 	SERIAL: "SERIAL",
-	KNAPSACK: "KNAPSACK",
 	TABU: "TABU",
 	SIMULATED_ANNEALING: "SIMULATED_ANNEALING",
 } as const;
@@ -229,7 +228,7 @@ function calculatefitScoreTOPSIS(
 	// Step 3: Apply weights to the normalized matrix
 	const weightedMatrix = normalizedMatrix.map((caregiver) => {
 		const weightedCriteria = {
-			competencies: caregiver.normalizedCriteria.competencies * 1, // Base weight for competencies
+			competencies: caregiver.normalizedCriteria.competencies, // Base weight for competencies
 			distance: caregiver.normalizedCriteria.distance * weights.distanceWeight,
 			nightShift: caregiver.normalizedCriteria.nightShift * weights.nightWeight,
 			weekendShift:
@@ -382,125 +381,6 @@ function calculateFitScoreRandom(caregiverId: number) {
 	};
 }
 
-function assignCaregiversWithKnapsack(
-	shifts: Shift[],
-	caregivers: Caregiver[],
-	weights: Weights,
-	algorithmType: AlgorithmType,
-	unfiltered: boolean,
-) {
-	if (shifts.length === 0) {
-		console.warn("No shifts available to assign caregivers.");
-		return [];
-	}
-
-	const allPairs: {
-		shift: Shift;
-		caregiver: Caregiver;
-		score: number;
-	}[] = [];
-
-	// Normalize caregivers' scores before pairing
-	const normalizedCaregivers = caregivers.map((caregiver) => {
-		const distance = calculateHaversineDistance(
-			caregiver.location,
-			shifts[0]!.patient.location,
-		);
-		const caregiverWithDistance = { ...caregiver, distance };
-
-		// Get ranking score using the normalized approach
-		const [ranked] = getNursesSortedByFit(
-			shifts[0]!,
-			[caregiverWithDistance],
-			weights,
-			algorithmType,
-			unfiltered,
-		);
-
-		return {
-			...caregiverWithDistance,
-			score: ranked?.percentage ?? 0, // Default to 0 if no score found
-		};
-	});
-
-	// Generate all possible pairs of shifts and caregivers, then rank by score
-	for (const shift of shifts) {
-		for (const caregiver of normalizedCaregivers) {
-			const distance = calculateHaversineDistance(
-				caregiver.location,
-				shift.patient.location,
-			);
-			const caregiverWithDistance = { ...caregiver, distance };
-			const [ranked] = getNursesSortedByFit(
-				shift,
-				[caregiverWithDistance],
-				weights,
-				algorithmType,
-				unfiltered,
-			);
-			if (ranked && ranked.percentage > 0) {
-				allPairs.push({
-					shift,
-					caregiver: caregiverWithDistance,
-					score: ranked.percentage, // Using pre-normalized score
-				});
-			}
-		}
-	}
-
-	// Sort pairs by score in descending order (higher scores first)
-	allPairs.sort((a, b) => b.score - a.score);
-
-	// Use Sets to keep track of unique caregivers and shifts already processed
-	const assignedCaregivers = new Set<number>();
-	const assignedShifts = new Set<number>();
-
-	// Deep clone the shifts array
-	const result = shifts.map((shift) => ({
-		...shift,
-		patient: { ...shift.patient },
-		isNightShift: isNightShift(shift),
-		isWeekendShift: isWeekendShift(shift),
-	}));
-
-	// First pass: Assign caregivers to shifts based on the highest score
-	for (const { shift, caregiver } of allPairs) {
-		if (
-			!assignedCaregivers.has(caregiver.id) &&
-			!assignedShifts.has(shift.id)
-		) {
-			assignedCaregivers.add(caregiver.id);
-			assignedShifts.add(shift.id);
-
-			const index = result.findIndex((s) => s.id === shift.id);
-			const targetShift = result[index];
-			if (!targetShift) continue;
-			targetShift.assignedCaregiver = caregiver;
-		}
-	}
-
-	// Second pass: Ensure every shift gets assigned a caregiver
-	for (const shift of shifts) {
-		if (!assignedShifts.has(shift.id)) {
-			// Find the next best available caregiver
-			for (const caregiver of normalizedCaregivers) {
-				if (!assignedCaregivers.has(caregiver.id)) {
-					assignedCaregivers.add(caregiver.id);
-					assignedShifts.add(shift.id);
-
-					const index = result.findIndex((s) => s.id === shift.id);
-					const targetShift = result[index];
-					if (!targetShift) continue;
-					targetShift.assignedCaregiver = caregiver;
-					break; // Move on to the next unassigned shift
-				}
-			}
-		}
-	}
-
-	return result;
-}
-
 function getNursesSortedByFit(
 	shift: Shift,
 	caregivers: Caregiver[],
@@ -543,29 +423,11 @@ function assignCaregiversToShifts(
 	strategyType: StrategyType,
 	unfiltered: boolean,
 ) {
-	if (strategyType === "KNAPSACK") {
-		// You would need to modify assignCaregiversWithKnapsack similarly
-		const knapsackAssignments = assignCaregiversWithKnapsack(
-			shifts,
-			caregivers,
-			weights,
-			algorithmType,
-			unfiltered,
-		);
-
-		return knapsackAssignments.map((shift) => ({
-			shift,
-			caregiver: shift.assignedCaregiver,
-		}));
-	}
-
 	if (strategyType === "TABU") {
 		const tabuAssignments = assignCaregiversWithTABUSearch(
 			shifts,
 			caregivers,
 			weights,
-			algorithmType,
-			unfiltered,
 		);
 
 		return tabuAssignments.map((shift) => ({
@@ -695,11 +557,9 @@ function assignCaregiversWithSimulatedAnnealing(
 
 	// Calculate initial solution score
 	let currentSolution: Shift[] = [...result];
-	let currentScore: number = calculateSolutionScore(
+	let currentScore: number = calculateSolutionScoreUsingMCDM(
 		currentSolution,
 		weights,
-		algorithmType,
-		unfiltered,
 	);
 	let bestSolution: Shift[] = [...currentSolution];
 	let bestScore: number = currentScore;
@@ -816,12 +676,7 @@ function assignCaregiversWithSimulatedAnnealing(
 			}
 
 			// Calculate new solution score
-			const newScore = calculateSolutionScore(
-				newSolution,
-				weights,
-				algorithmType,
-				unfiltered,
-			);
+			const newScore = calculateSolutionScoreUsingMCDM(newSolution, weights);
 
 			// Decide whether to accept the new solution
 			const scoreDifference = newScore - currentScore;
@@ -906,8 +761,6 @@ function assignCaregiversWithTABUSearch(
 	shifts: Shift[],
 	caregivers: Caregiver[],
 	weights: Weights,
-	algorithmType: AlgorithmType,
-	unfiltered: boolean,
 ): Shift[] {
 	if (shifts.length === 0) {
 		console.warn("No shifts available to assign caregivers.");
@@ -941,18 +794,16 @@ function assignCaregiversWithTABUSearch(
 
 	// Calculate initial solution score
 	let currentSolution: Shift[] = [...result];
-	let currentScore: number = calculateSolutionScore(
+	let currentScore: number = calculateSolutionScoreUsingMCDM(
 		currentSolution,
 		weights,
-		algorithmType,
-		unfiltered,
 	);
 	let bestSolution: Shift[] = [...currentSolution];
 	let bestScore: number = currentScore;
 
 	// TABU search parameters
 	const maxIterations = 100;
-	const tabuListSize = 10;
+	const tabuListSize = 15;
 	const tabuList: TabuMove[] = [];
 
 	// TABU search iterations
@@ -988,11 +839,9 @@ function assignCaregiversWithTABUSearch(
 				};
 
 				// Calculate the score of the new solution
-				const newScore: number = calculateSolutionScore(
+				const newScore: number = calculateSolutionScoreUsingMCDM(
 					newSolution,
 					weights,
-					algorithmType,
-					unfiltered,
 				);
 
 				// Update best neighbor if this is better
@@ -1038,45 +887,22 @@ function assignCaregiversWithTABUSearch(
 	return bestSolution;
 }
 
-// Helper function to calculate the total score of a solution
-function calculateSolutionScore(
+function calculateSolutionScoreUsingMCDM(
 	solution: Shift[],
 	weights: Weights,
-	algorithmType: AlgorithmType,
-	unfiltered: boolean,
 ): number {
-	let totalScore = 0;
+	let total = 0;
+	const usedCaregivers = new Set<number>();
 
 	for (const shift of solution) {
-		if (!shift.assignedCaregiver) continue;
-
-		const caregiversWithDistance: (Caregiver & { distance: number })[] = [
-			{
-				...shift.assignedCaregiver,
-				distance: parseFloat(
-					calculateHaversineDistance(
-						shift.assignedCaregiver.location,
-						shift.patient.location,
-					).toFixed(1),
-				),
-			},
-		];
-
-		const rankedNurses = getNursesSortedByFit(
-			shift,
-			caregiversWithDistance,
-			weights,
-			algorithmType,
-			unfiltered,
-		);
-
-		const rankedNurse = rankedNurses[0];
-		if (rankedNurse) {
-			totalScore += rankedNurse.score;
-		}
+		const caregiver = shift.assignedCaregiver;
+		if (!caregiver) continue;
+		const fit = calculateFitScoreMCDM(caregiver, shift, weights);
+		total += fit.score;
+		usedCaregivers.add(caregiver.id);
 	}
 
-	return totalScore;
+	return total + usedCaregivers.size;
 }
 
 export const algorithmRouter = createTRPCRouter({
@@ -1230,7 +1056,7 @@ export const algorithmRouter = createTRPCRouter({
 			}
 
 			const randomShifts = randomShiftGenerator(
-				1000,
+				100,
 				dbPatients.map((patient) => patient.id),
 			).map((randomShift) => {
 				const patient = dbPatients.find(
@@ -1254,7 +1080,7 @@ export const algorithmRouter = createTRPCRouter({
 			const time = performance.now();
 			const data = assignCaregiversToShifts(
 				randomShifts,
-				randomCaregiverGenerator(1000),
+				randomCaregiverGenerator(100),
 				weights,
 				input.algorithmType,
 				input.strategyType,
