@@ -157,6 +157,7 @@ function StatsPanel({
 			<div>Some needs: {data.percentageOfMeetsSomeNeeds}%</div>
 			<div>Matches night: {data.percentageOfMatchesNight}%</div>
 			<div>Matches weekend: {data.percentageOfMatchesWeekend}%</div>
+			<div>Matches both: {data.percentageOfMatchesBoth}%</div>
 		</>
 	);
 }

@@ -1120,6 +1120,14 @@ export const algorithmRouter = createTRPCRouter({
 					).length /
 						data.length) *
 					100,
+				percentageOfMatchesBoth:
+					(data.filter(
+						({ shift, caregiver }) =>
+							Boolean(isNightShift(shift) === caregiver?.prefersNights) &&
+							Boolean(isWeekendShift(shift) === caregiver?.prefersWeekends),
+					).length /
+						data.length) *
+					100,
 			};
 		}),
 });
