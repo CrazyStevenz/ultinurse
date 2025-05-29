@@ -24,7 +24,7 @@ export function BulkAssignCaregiver() {
 	const [nightWeight, setNightWeight] = useState(1);
 	const [weekendWeight, setWeekendWeight] = useState(1);
 	const [distanceWeight, setDistanceWeight] = useState(1);
-	const [algorithmType, setAlgorithmType] = useState<AlgorithmType>("MCDM");
+	const [algorithmType, setAlgorithmType] = useState<AlgorithmType>("WSM");
 	const [strategyType, setStrategyType] = useState<StrategyType>("SERIAL");
 
 	const utils = api.useUtils();
@@ -58,10 +58,10 @@ export function BulkAssignCaregiver() {
 							<h3 className="mb-2 font-semibold">Initial Algorithm:</h3>
 							<div className="space-x-2">
 								<Toggle
-									pressed={algorithmType === "MCDM"}
-									onPressedChange={() => setAlgorithmType("MCDM")}
+									pressed={algorithmType === "WSM"}
+									onPressedChange={() => setAlgorithmType("WSM")}
 								>
-									MCDM
+									WSM
 								</Toggle>
 								<Toggle
 									pressed={algorithmType === "TOPSIS"}

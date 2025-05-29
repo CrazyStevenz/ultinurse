@@ -13,19 +13,19 @@ export default function Stats() {
 	const [nightWeight, setNightWeight] = useState(1);
 	const [weekendWeight, setWeekendWeight] = useState(1);
 	const [distanceWeight, setDistanceWeight] = useState(1);
-	const [algorithmType, setAlgorithmType] = useState<AlgorithmType>("MCDM");
+	const [algorithmType, setAlgorithmType] = useState<AlgorithmType>("WSM");
 	const [strategyType, setStrategyType] = useState<StrategyType>("SERIAL");
 
 	return (
 		<>
 			<div className="mt-4">
-				<h3 className="mb-2 font-semibold">Algorithm:</h3>
+				<h3 className="mb-2 font-semibold">Initial Algorithm:</h3>
 				<div className="space-x-2">
 					<Toggle
-						pressed={algorithmType === "MCDM"}
-						onPressedChange={() => setAlgorithmType("MCDM")}
+						pressed={algorithmType === "WSM"}
+						onPressedChange={() => setAlgorithmType("WSM")}
 					>
-						MCDM
+						WSM
 					</Toggle>
 					<Toggle
 						pressed={algorithmType === "TOPSIS"}
@@ -47,7 +47,7 @@ export default function Stats() {
 					</Toggle>
 				</div>
 
-				<h3 className="mb-2 mt-4 font-semibold">Strategy:</h3>
+				<h3 className="mb-2 mt-4 font-semibold">Executor Algorithm:</h3>
 				<div className="space-x-2">
 					<Toggle
 						pressed={strategyType === "SERIAL"}

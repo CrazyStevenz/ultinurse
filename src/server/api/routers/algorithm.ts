@@ -12,7 +12,7 @@ const SOFT_DISTANCE = 5;
 const HARD_DISTANCE = 8;
 
 const AlgorithmType = {
-	MCDM: "MCDM",
+	WSM: "WSM",
 	GREEDY: "GREEDY",
 	RANDOM: "RANDOM",
 	TOPSIS: "TOPSIS",
@@ -67,13 +67,13 @@ function normalizeScores<T extends { score: number }>(
 	}));
 }
 
-function rankNursesMCDM(
+function rankNursesWSM(
 	caregivers: Caregiver[],
 	patient: Shift,
 	weights: Weights,
 ) {
 	return caregivers.map((caregiver) =>
-		calculateFitScoreMCDM(caregiver, patient, weights),
+		calculateFitScoreWSM(caregiver, patient, weights),
 	);
 }
 
@@ -87,7 +87,7 @@ function rankNursesGreedy(
 	);
 }
 
-function calculateFitScoreMCDM(
+function calculateFitScoreWSM(
 	caregiver: Caregiver,
 	shift: Shift,
 	weights: Weights,
@@ -395,12 +395,12 @@ function getNursesSortedByFit(
 			);
 
 	switch (algorithmType) {
-		case "MCDM":
+		case "WSM":
 			return normalizeScores(
-				rankNursesMCDM(caregiversToUse, shift, weights),
+				rankNursesWSM(caregiversToUse, shift, weights),
 			).sort((a, b) => b.percentage - a.percentage);
 		case "TOPSIS":
-			// TOPSIS is implemented within rankNursesMCDM for multiple caregivers
+			// TOPSIS is implemented within rankNursesWSM for multiple caregivers
 			return normalizeScores(
 				calculatefitScoreTOPSIS(caregiversToUse, shift, weights),
 			).sort((a, b) => b.percentage - a.percentage);
@@ -557,7 +557,7 @@ function assignCaregiversWithSimulatedAnnealing(
 
 	// Calculate initial solution score
 	let currentSolution: Shift[] = [...result];
-	let currentScore: number = calculateSolutionScoreUsingMCDM(
+	let currentScore: number = calculateSolutionScoreUsingWSM(
 		currentSolution,
 		weights,
 	);
@@ -676,7 +676,7 @@ function assignCaregiversWithSimulatedAnnealing(
 			}
 
 			// Calculate new solution score
-			const newScore = calculateSolutionScoreUsingMCDM(newSolution, weights);
+			const newScore = calculateSolutionScoreUsingWSM(newSolution, weights);
 
 			// Decide whether to accept the new solution
 			const scoreDifference = newScore - currentScore;
@@ -794,7 +794,7 @@ function assignCaregiversWithTABUSearch(
 
 	// Calculate initial solution score
 	let currentSolution: Shift[] = [...result];
-	let currentScore: number = calculateSolutionScoreUsingMCDM(
+	let currentScore: number = calculateSolutionScoreUsingWSM(
 		currentSolution,
 		weights,
 	);
@@ -839,7 +839,7 @@ function assignCaregiversWithTABUSearch(
 				};
 
 				// Calculate the score of the new solution
-				const newScore: number = calculateSolutionScoreUsingMCDM(
+				const newScore: number = calculateSolutionScoreUsingWSM(
 					newSolution,
 					weights,
 				);
@@ -887,7 +887,7 @@ function assignCaregiversWithTABUSearch(
 	return bestSolution;
 }
 
-function calculateSolutionScoreUsingMCDM(
+function calculateSolutionScoreUsingWSM(
 	solution: Shift[],
 	weights: Weights,
 ): number {
@@ -897,7 +897,7 @@ function calculateSolutionScoreUsingMCDM(
 	for (const shift of solution) {
 		const caregiver = shift.assignedCaregiver;
 		if (!caregiver) continue;
-		const fit = calculateFitScoreMCDM(caregiver, shift, weights);
+		const fit = calculateFitScoreWSM(caregiver, shift, weights);
 		total += fit.score;
 		usedCaregivers.add(caregiver.id);
 	}
