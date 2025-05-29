@@ -59,9 +59,13 @@ export default function CaregiverPanel({
 					<div className="flex justify-between px-4">
 						<span>Distance: {caregiver.distance} Km</span>
 						<span>
-							{caregiver.meetsAllNeeds
-								? "Meets all needs"
-								: "Partially meets needs"}
+							{caregiver.meetsAllNeeds ? (
+								<span className="text-green-600">✅ Meets all needs</span>
+							) : (
+								<span className="text-yellow-600">
+									⚠️ Partially meets needs
+								</span>
+							)}
 						</span>
 					</div>
 					<div className="flex justify-between px-4">
