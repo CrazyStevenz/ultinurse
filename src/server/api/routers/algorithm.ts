@@ -117,8 +117,8 @@ function calculateFitScoreWSM(
 	const weekendShiftEligible =
 		isWeekendShift(shift) === caregiver.prefersWeekends;
 
-	if (nightShiftEligible) score += weights.nightWeight / 125;
-	if (weekendShiftEligible) score += weights.weekendWeight / 125;
+	if (nightShiftEligible) score += weights.nightWeight * 5;
+	if (weekendShiftEligible) score += weights.weekendWeight * 5;
 
 	return {
 		id: caregiver.id,
