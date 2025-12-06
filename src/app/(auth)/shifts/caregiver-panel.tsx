@@ -104,6 +104,7 @@ export default function CaregiverPanel({
 function Skeleton() {
 	return (
 		<ul>
+			<div className="text-sm">Calculating...</div>
 			{Array.from({ length: 5 }).map((_, i) => (
 				<li
 					key={i}
@@ -111,30 +112,30 @@ function Skeleton() {
 				>
 					<div className="flex justify-between px-4 pb-4 pt-2">
 						<span className="animate-pulse">
-							<div className="h-2 w-56 rounded bg-gray-200"></div>
+							<div className="h-2 w-40 rounded bg-gray-200"></div>
 						</span>
 						<span className="animate-pulse">
-							<div className="h-2 w-12 rounded bg-gray-200"></div>
+							<div className="h-2 w-14 rounded bg-gray-200"></div>
 						</span>
 					</div>
 					<div className="flex justify-between px-4 pb-4">
 						<span className="animate-pulse">
-							<div className="h-2 w-24 rounded bg-gray-200"></div>
+							<div className="h-2 w-28 rounded bg-gray-200"></div>
 						</span>
 						<span className="animate-pulse">
-							<div className="h-2 w-28 rounded bg-gray-200"></div>
+							<div className="h-2 w-36 rounded bg-gray-200"></div>
 						</span>
 					</div>
 					<div className="flex justify-between px-4">
 						<span className="animate-pulse">
-							<div className="h-2 w-40 rounded bg-gray-200"></div>
+							<div className="h-2 w-24 rounded bg-gray-200"></div>
 						</span>
 						<div className="flex">
 							<span className="mr-2 animate-pulse">
-								<div className="h-2 w-24 rounded bg-gray-200"></div>
+								<div className="h-2 w-16 rounded bg-gray-200"></div>
 							</span>
 							<span className="animate-pulse">
-								<div className="h-2 w-32 rounded bg-gray-200"></div>
+								<div className="h-2 w-24 rounded bg-gray-200"></div>
 							</span>
 						</div>
 					</div>

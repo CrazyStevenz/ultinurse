@@ -35,7 +35,7 @@ export default function RootLayout({
 						</div>
 					</main>
 
-					<nav className="mt-14 md:mt-0 md:hidden">
+					<nav className="mt-16 md:mt-0 md:hidden">
 						<BottomNav />
 					</nav>
 				</TRPCReactProvider>

@@ -57,7 +57,7 @@ type Shift = {
 function normalizeScores<T extends { score: number }>(
 	caregivers: T[],
 ): (T & { percentage: number })[] {
-	const maxScore = Math.max(...caregivers.map((n) => n.score));
+	const maxScore = Math.max(...caregivers.map((caregiver) => caregiver.score));
 	return caregivers.map((caregiver) => ({
 		...caregiver,
 		percentage:

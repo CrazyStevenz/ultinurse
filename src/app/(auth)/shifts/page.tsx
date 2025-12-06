@@ -21,7 +21,7 @@ async function ShiftsContent() {
 		<>
 			<div className="flex flex-col justify-between py-4 sm:flex-row">
 				<span className="text-3xl font-semibold">Shifts</span>
-				<div className="mt-2 space-x-2 sm:mt-0 sm:flex-row">
+				<div className="mt-2 flex flex-wrap gap-2">
 					<UnassignAllShifts />
 					<BulkAssignCaregiver />
 					<CreateShift />
